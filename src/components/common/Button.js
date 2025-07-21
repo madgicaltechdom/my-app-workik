@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
 const Button = ({ 
@@ -7,7 +8,9 @@ const Button = ({
   style, 
   textStyle, 
   disabled = false, 
-  loading = false 
+  loading = false, 
+  testID, 
+  ...rest
 }) => {
   return (
     <TouchableOpacity
@@ -18,6 +21,8 @@ const Button = ({
       ]}
       onPress={onPress}
       disabled={disabled || loading}
+      testID={testID}
+      {...rest}
     >
       {loading ? (
         <ActivityIndicator color="#fff" />
@@ -50,3 +55,12 @@ const styles = StyleSheet.create({
 });
 
 export default Button;
+Button.propTypes = {
+  title: PropTypes.any,
+  onPress: PropTypes.any,
+  style: PropTypes.any,
+  textStyle: PropTypes.any,
+  disabled: PropTypes.bool,
+  loading: PropTypes.bool,
+  testID: PropTypes.string,
+};

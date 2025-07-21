@@ -1,6 +1,7 @@
 
 import { initializeApp, getApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCR4XlEnvTP0uLeboUIWOImdmGTAX7OwIg",
@@ -13,7 +14,13 @@ const firebaseConfig = {
 
 // Initialize Firebase only once
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-// Expo Go compatible Auth initialization
-const auth = getAuth(app);
+
+// Expo Go compatible Auth initialization with AsyncStorage persistence
+const auth =
+  typeof window === 'undefined'
+    ? initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage),
+      })
+    : getAuth(app);
 
 export { auth, app };

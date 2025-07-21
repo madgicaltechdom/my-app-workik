@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const ErrorMessage = ({ message, style }) => {
+const ErrorMessage = ({ message, style, testID }) => {
   if (!message) return null;
 
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, style]} testID={testID}>
       <Text style={styles.errorText}>{message}</Text>
     </View>
   );
@@ -23,5 +23,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+import PropTypes from 'prop-types';
+
+ErrorMessage.propTypes = {
+  message: PropTypes.any,
+  style: PropTypes.any,
+  testID: PropTypes.string,
+};
 
 export default ErrorMessage;
