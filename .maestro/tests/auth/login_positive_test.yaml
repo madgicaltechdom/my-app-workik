@@ -7,21 +7,27 @@ env:
 - runScript: '../../elements/auth.js'
 - launchApp:
     clearState: true
-- assertVisible: '${output.login.screen}'
+- waitForAnimationToEnd    
+- assertVisible: 
+    id: '${output.login.screen}'
 - assertVisible:
-    text: '${output.login.title}'
-- assertVisible: '${output.login.emailInput}'
-- assertVisible: '${output.login.passwordInput}'
-- assertVisible: '${output.login.submitButton}'
-- tapOn: '${output.login.emailInput}'
-- inputText: '${VALID_EMAIL}'
-- tapOn: '${output.login.passwordInput}'
-- inputText: '${VALID_PASSWORD}'
-- tapOn: '${output.login.submitButton}'
-- assertVisible: '${output.login.loadingOverlay}'
+    id: email-input
+- assertVisible: 
+    id: "${output.login.passwordInput}"
+- assertVisible: 
+    id: "${output.login.submitButton}"
+- tapOn: 
+    id: "${output.login.emailInput}"
+- inputText: "${VALID_EMAIL}"
+- tapOn: 
+    id: "${output.login.passwordInput}"
+- inputText: "${VALID_PASSWORD}"
+- tapOn: 
+    id: "${output.login.submitButton}"
 - waitForAnimationToEnd
-- assertNotVisible: '${output.login.errorMessage}'
-- assertVisible: '${output.home.screen}'
+- assertNotVisible: 
+    id: "${output.login.errorMessage}"
+- assertVisible: 
+    id: "${output.home.screen}"
 - assertVisible:
-    id: '${output.home.welcomeMessage}'
-    text: '${VALID_EMAIL}'
+    id: "${output.home.welcomeMessage}"

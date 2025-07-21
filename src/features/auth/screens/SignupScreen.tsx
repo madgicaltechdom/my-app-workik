@@ -14,6 +14,7 @@ import Button from '../../../components/common/Button';
 import ErrorMessage from '../../../components/common/ErrorMessage';
 import { styles } from './SignupScreen.styles';
 import theme from '../../../theme/theme';
+import { validateEmail, validatePassword, sanitizeInput } from '../../../utils/validation';
 
 type SignupScreenProps = {
   navigation: StackNavigationProp<any>;
@@ -30,46 +31,40 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const [error, setError] = useState('');
 
   const validateForm = (): boolean => {
-    if (!email) {
+    const cleanEmail = sanitizeInput(email);
+    const cleanPassword = sanitizeInput(password);
+    const cleanConfirmPassword = sanitizeInput(confirmPassword);
+    if (!cleanEmail) {
       setError(t('signup.emailRequired'));
       return false;
     }
-    
-    if (!password) {
-      setError(t('signup.passwordRequired'));
-      return false;
-    }
-    
-    if (password !== confirmPassword) {
-      setError(t('signup.passwordsDoNotMatch'));
-      return false;
-    }
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!validateEmail(cleanEmail)) {
       setError(t('signup.invalidEmail'));
       return false;
     }
-    
-    if (password.length < 6) {
-      setError(t('signup.passwordTooShort'));
+    if (!cleanPassword) {
+      setError(t('signup.passwordRequired'));
       return false;
     }
-    
+    if (!validatePassword(cleanPassword)) {
+      setError(t('signup.weakPassword'));
+      return false;
+    }
+    if (cleanPassword !== cleanConfirmPassword) {
+      setError(t('signup.passwordsDoNotMatch'));
+      return false;
+    }
     return true;
   };
 
   const handleSignup = async (): Promise<void> => {
     setError('');
-    
     if (!validateForm()) {
       return;
     }
-    
     setLoading(true);
-    
     try {
-      await authService.signup(email, password);
+      await authService.signup(sanitizeInput(email), sanitizeInput(password));
       Alert.alert(t('signup.accountCreated'));
       navigation.replace('Login');
     } catch (err: any) {

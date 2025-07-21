@@ -1,13 +1,24 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { createStackNavigator } from '@react-navigation/stack';
 
 // Import your main screens
 import HomeScreen from '../features/home/screens/HomeScreen';
 import ProfileScreen from '../features/profile/screens/ProfileScreen';
 import SettingsScreen from '../features/settings/screens/SettingsScreen';
+import UpdateProfileScreen from '../features/profile/screens/UpdateProfileScreen';
 
 const Tab = createBottomTabNavigator();
+
+const ProfileStack = createStackNavigator();
+
+const ProfileStackNavigator = () => (
+  <ProfileStack.Navigator>
+    <ProfileStack.Screen name="ProfileScreen" component={ProfileScreen} options={{ title: 'Profile' }} />
+    <ProfileStack.Screen name="UpdateProfileScreen" component={UpdateProfileScreen} options={{ title: 'Edit Profile' }} />
+  </ProfileStack.Navigator>
+);
 
 const TabNavigator = () => {
   return (
@@ -42,7 +53,7 @@ const TabNavigator = () => {
       />
       <Tab.Screen 
         name="Profile" 
-        component={ProfileScreen} 
+        component={ProfileStackNavigator} 
         options={{ title: 'Profile' }}
       />
       <Tab.Screen 

@@ -11,6 +11,7 @@ import { auth } from '../../../services/firebaseConfig';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import ErrorMessage from '../../../components/common/ErrorMessage';
+import { validateEmail, sanitizeInput } from '../../../utils/validation';
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -18,27 +19,25 @@ const ForgotPasswordScreen = ({ navigation }) => {
   const [error, setError] = useState('');
 
   const handleResetPassword = async () => {
-    // Clear previous errors
     setError('');
-    
-    // Basic validation
-    if (!email) {
+    const cleanEmail = sanitizeInput(email);
+    if (!cleanEmail) {
       setError('Please enter your email');
       return;
     }
-    
+    if (!validateEmail(cleanEmail)) {
+      setError('Invalid email address');
+      return;
+    }
     setLoading(true);
-    
     try {
-      await sendPasswordResetEmail(auth, email);
-      
+      await sendPasswordResetEmail(auth, cleanEmail);
       Alert.alert(
-        'Password Reset', 
+        'Password Reset',
         'A password reset link has been sent to your email.',
         [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
       );
     } catch (err) {
-      // Handle specific Firebase auth errors
       switch (err.code) {
         case 'auth/invalid-email':
           setError('Invalid email address');

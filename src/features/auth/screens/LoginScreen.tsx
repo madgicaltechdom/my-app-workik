@@ -14,6 +14,7 @@ import {
 import { authService } from '../../../services/authService';
 import { useTranslation } from '../../../localization';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { validateEmail, sanitizeInput } from '../../../utils/validation';
 
 interface LoginState {
   email: string;
@@ -67,14 +68,17 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
 
   const handleLogin = useCallback(async () => {
     dispatch({ type: 'SET_ERROR', payload: '' });
-    const sanitizedEmail = email.trim();
-    const sanitizedPassword = password.trim();
-    // Basic validation
+    const sanitizedEmail = sanitizeInput(email);
+    const sanitizedPassword = sanitizeInput(password);
     if (!sanitizedEmail || !sanitizedPassword) {
       dispatch({ type: 'SET_ERROR', payload: t('login.bothRequired') });
       return;
     }
-    // Optional: Add regex for email validation if needed
+    if (!validateEmail(sanitizedEmail)) {
+      dispatch({ type: 'SET_ERROR', payload: t('login.invalidEmail') });
+      return;
+    }
+    // Optionally: Add password validation here if you want to enforce rules
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       await authService.login(sanitizedEmail, sanitizedPassword);

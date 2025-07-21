@@ -47,5 +47,6 @@ export const en = {
     dateOfBirth: 'Date of Birth',
     address: 'Address',
     logout: 'Logout',
+    editProfile: 'Edit Profile',
   }
 };

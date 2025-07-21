@@ -1,7 +1,8 @@
 import React from 'react';
-import { useWindowDimensions, ScrollView } from 'react-native';
+import { useWindowDimensions, ScrollView, TouchableOpacity, AccessibilityRole } from 'react-native';
 import { useTheme } from 'styled-components/native';
 import { useProfile } from '../contexts/ProfileContext';
+import { useNavigation } from '@react-navigation/native';
 import i18n from '../../../localization/i18n';
 import { authService } from '../../../services/authService';
 import {
@@ -14,13 +15,16 @@ import {
   InfoBox,
   InfoTitle,
   InfoValue,
-  LogoutButtonStyled
+  LogoutButtonStyled,
+  EditButtonStyled,
+  EditButtonText
 } from './ProfileScreen.styles';
 
 const ProfileScreen: React.FC = () => {
   const { profile: user } = useProfile();
   const { width } = useWindowDimensions();
   useTheme();
+  const navigation = useNavigation();
 
   const handleLogout = async () => {
     try {
@@ -28,6 +32,10 @@ const ProfileScreen: React.FC = () => {
     } catch (error) {
       console.error('Logout failed', error);
     }
+  };
+
+  const handleEditProfile = () => {
+    navigation.navigate('UpdateProfileScreen');
   };
 
   // Sanitize and fallback for user fields
@@ -50,6 +58,16 @@ const ProfileScreen: React.FC = () => {
             {user?.displayName || `${firstName} ${lastName}` || i18n.t('profile.defaultName')}
           </NameText>
           <EmailText allowFontScaling>{user?.email || i18n.t('profile.noEmail')}</EmailText>
+
+          <EditButtonStyled
+            onPress={handleEditProfile}
+            accessibilityRole="button"
+            accessibilityLabel={i18n.t('profile.editProfile')}
+            testID="edit-profile-button"
+            activeOpacity={0.7}
+          >
+            <EditButtonText allowFontScaling>{i18n.t('profile.edit')}</EditButtonText>
+          </EditButtonStyled>
 
           <InfoContainer>
             <InfoBox>
@@ -88,7 +106,7 @@ const ProfileScreen: React.FC = () => {
             )}
           </InfoContainer>
 
-                    <LogoutButtonStyled
+          <LogoutButtonStyled
             title={i18n.t('profile.logout')}
             onPress={handleLogout}
             testID="logout-button"
