@@ -1,0 +1,72 @@
+appId: com.madgicaltechdom.storageapp
+
+env:
+  NONEXISTENT_EMAIL: "nonexistent@example.com"
+  WRONG_PASSWORD: "WrongPassword123!"
+  VALID_EMAIL: "test@example.com"
+  VALID_PASSWORD: "Password123!"
+
+flows:
+  main:
+    # Load Page Object Model
+    - runScript: ../../elements/auth.js
+    
+    # Launch app with clean state
+    - launchApp:
+        clearState: true
+        
+    # Test Case 1: User Not Found
+    - tapOn:
+        id: ${output.login.emailInput}
+    - inputText: ${NONEXISTENT_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - inputText: ${VALID_PASSWORD}
+    - tapOn:
+        id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.login.errorMessage}
+        text: "No user found with this email"
+        
+    # Test Case 2: Wrong Password
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - inputText: ${VALID_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - eraseText
+    - inputText: ${WRONG_PASSWORD}
+    - tapOn:
+        id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.login.errorMessage}
+        text: "Incorrect password"
+        
+    # Test Case 3: Network Error (need to simulate offline state)
+    - enableNetworkSync
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - inputText: ${VALID_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - eraseText
+    - inputText: ${VALID_PASSWORD}
+    - disableNetworkSync
+    - tapOn:
+        id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.login.errorMessage}
+        text: "Login failed. Please try again."
+    - enableNetworkSync
+
+metadata:
+  name: "Login - Error Handling"
+  description: "Tests login error scenarios and error message display"
+  author: "Test Team"
+  tags:
+    - auth
+    - login
+    - error-handling
+    - negative

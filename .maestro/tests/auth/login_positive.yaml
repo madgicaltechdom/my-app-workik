@@ -1,0 +1,191 @@
+# Login Positive Test Flow
+appId: com.madgicaltechdom.storageapp
+env:
+  VALID_EMAIL: "kapil.jain@madgicaltechdom.com"
+  VALID_PASSWORD: "123456"
+---
+- runScript: "../../elements/auth.js"
+- launchApp
+- assertVisible: "${output.login.screen}"
+- assertVisible:
+    text: "${output.login.title}"
+- assertVisible: "${output.login.emailInput}"
+- assertVisible: "${output.login.passwordInput}"
+- assertVisible: "${output.login.submitButton}"
+- tapOn: "${output.login.emailInput}"
+- inputText: "${VALID_EMAIL}"
+- tapOn: "${output.login.passwordInput}"
+- inputText: "${VALID_PASSWORD}"
+- tapOn: "${output.login.submitButton}"
+- assertVisible: "${output.login.loadingOverlay}"
+- waitForAnimationToEnd
+- assertNotVisible: "${output.login.errorMessage}"
+- assertVisible: "${output.home.screen}"
+- assertVisible:
+    id: "${output.home.welcomeMessage}"
+    contains: "${VALID_EMAIL}"
+- runScript:
+    file: ../../elements/auth.js
+
+- launchApp:
+    clearState: true
+
+- assertVisible:
+    id: ${output.login.screen}
+- assertVisible:
+    text: ${output.login.title}
+- assertVisible:
+    id: ${output.login.emailInput}
+- assertVisible:
+    id: ${output.login.passwordInput}
+- assertVisible:
+    id: ${output.login.submitButton}
+    enabled: false
+
+- tapOn:
+    id: ${output.login.emailInput}
+- assertHasFocus:
+    id: ${output.login.emailInput}
+- inputText: ${VALID_EMAIL}
+- assertVisible:
+    id: ${output.login.emailInput}
+    hasText: ${VALID_EMAIL}
+
+- tapOn:
+    id: ${output.login.passwordInput}
+- assertHasFocus:
+    id: ${output.login.passwordInput}
+- inputText: ${VALID_PASSWORD}
+- assertVisible:
+    id: ${output.login.passwordInput}
+    hasText: true
+
+- assertVisible:
+    id: ${output.login.submitButton}
+    enabled: true
+
+- tapOn:
+    id: ${output.login.submitButton}
+
+- assertVisible:
+    id: ${output.login.loadingOverlay}
+    timeout: 1000
+- assertNotVisible:
+    id: ${output.login.errorMessage}
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- assertNotVisible:
+    id: ${output.login.screen}
+- assertVisible:
+    id: ${output.home.screen}
+
+- assertVisible:
+    id: ${output.home.title}
+    text: ${output.home.welcomeTitle}
+- assertVisible:
+    id: ${output.home.welcomeMessage}
+    contains: ${VALID_EMAIL}
+- assertVisible:
+    id: ${output.home.userAvatar}
+
+- assertVisible:
+    id: ${output.navigation.homeTab}
+    isSelected: true
+  # Load Page Object Model
+- runScript: ../../elements/auth.js
+    
+    # Launch app with clean state
+    - launchApp:
+        clearState: true
+    
+    # Verify Login Screen Elements
+    - assertVisible:
+        id: ${output.login.screen}
+    - assertVisible:
+        text: ${output.login.title}
+    - assertVisible:
+        id: ${output.login.emailInput}
+    - assertVisible:
+        id: ${output.login.passwordInput}
+    - assertVisible:
+        id: ${output.login.submitButton}
+        
+    # Test Case 1: Verify Login Form Initial State
+    - assertVisible:
+        id: ${output.login.submitButton}
+        enabled: false  # Submit should be disabled initially
+
+    # Test Case 2: Verify Input Field Behaviors
+    - tapOn:
+        id: ${output.login.emailInput}
+    - assertHasFocus:
+        id: ${output.login.emailInput}
+    - inputText: ${VALID_EMAIL}
+    - assertVisible:
+        id: ${output.login.emailInput}
+        hasText: ${VALID_EMAIL}
+    
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - assertHasFocus:
+        id: ${output.login.passwordInput}
+    - inputText: ${VALID_PASSWORD}
+    - assertVisible:
+        id: ${output.login.passwordInput}
+        hasText: true
+    
+    # Test Case 3: Verify Submit Button Enabled
+    - assertVisible:
+        id: ${output.login.submitButton}
+        enabled: true
+
+    # Test Case 4: Submit Login
+    - runFlow: login  # Use reusable login flow
+        
+    # Test Case 5: Verify Loading and Transition States
+    - assertVisible:
+        id: ${output.login.loadingOverlay}
+        timeout: 1000
+    - assertNotVisible:
+        id: ${output.login.errorMessage}
+    
+    # Wait for loading and animation
+    - waitForAnimationToEnd:
+        timeout: 2000
+    
+    # Test Case 6: Verify Successful Login State
+    - assertNotVisible:
+        id: ${output.login.screen}
+    - assertVisible:
+        id: ${output.home.screen}
+    
+    # Test Case 7: Verify Welcome Message and User Context
+    - assertVisible:
+        id: ${output.home.title}
+        text: ${output.home.welcomeTitle}
+    - assertVisible:
+        id: ${output.home.welcomeMessage}
+        contains: ${VALID_EMAIL}
+    - assertVisible:
+        id: ${output.home.userAvatar}
+        
+    # Verify Navigation Elements
+    - assertVisible:
+        text: ${output.navigation.homeTab}
+        isSelected: true
+    - assertVisible:
+        text: ${output.navigation.profileTab}
+    - assertVisible:
+        text: ${output.navigation.settingsTab}
+
+metadata:
+  name: "Login - Positive Flow"
+  description: "Tests successful login flow with valid credentials"
+  author: "Test Team"
+  tags:
+    - auth
+    - login
+    - positive
+    - smoke

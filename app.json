@@ -2,11 +2,11 @@
   "expo": {
     "name": "storageapp",
     "slug": "storageapp",
+    "scheme": "storageapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "splash": {
-
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -14,16 +14,20 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.madgicaltechdom.storageapp"
     },
     "android": {
       "package": "com.madgicaltechdom.storageapp",
       "adaptiveIcon": {
-          "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff"
       }
     },
-    "web": {
-     
+    "web": {},
+    "extra": {
+      "eas": {
+        "projectId": "67b8d9ad-a898-4423-be6e-ba8f9ec982d7"
+      }
     }
   }
 }

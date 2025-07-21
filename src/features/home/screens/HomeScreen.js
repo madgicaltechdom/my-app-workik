@@ -13,12 +13,12 @@ const HomeScreen = ({ navigation }) => {
   const { user } = useFirebaseAuth();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} testID="home-screen">
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome Home</Text>
+        <View style={styles.header} testID="home-header">
+          <Text style={styles.title} testID="home-title">Welcome Home</Text>
           {user && (
-            <Text style={styles.subtitle}>
+            <Text style={styles.subtitle} testID="home-welcome">
               Hello, {user.email || 'User'}
             </Text>
           )}

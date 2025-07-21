@@ -1,63 +1,67 @@
 import React, { useState } from 'react';
 import { 
   View, 
-  StyleSheet, 
   Alert, 
   KeyboardAvoidingView, 
   Platform 
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useFirebaseAuth } from '../../../hooks/useFirebaseAuth';
 import { authService } from '../../../services/authService';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import ErrorMessage from '../../../components/common/ErrorMessage';
+import { styles } from './SignupScreen.styles';
+import theme from '../../../theme/theme';
 
-const SignupScreen = ({ navigation }) => {
+type SignupScreenProps = {
+  navigation: StackNavigationProp<any>;
+};
+
+export const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
+  const { loading: authLoading } = useFirebaseAuth();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-
-
-  const validateForm = () => {
-    // Basic validation
+  const validateForm = (): boolean => {
     if (!email) {
-      setError('Email is required');
+      setError(t('signup.emailRequired'));
       return false;
     }
     
     if (!password) {
-      setError('Password is required');
+      setError(t('signup.passwordRequired'));
       return false;
     }
     
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('signup.passwordsDoNotMatch'));
       return false;
     }
     
-    // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('Invalid email format');
+      setError(t('signup.invalidEmail'));
       return false;
     }
     
-    // Password strength validation
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError(t('signup.passwordTooShort'));
       return false;
     }
     
     return true;
   };
 
-  const handleSignup = async () => {
-    // Clear previous errors
+  const handleSignup = async (): Promise<void> => {
     setError('');
     
-    // Validate form
     if (!validateForm()) {
       return;
     }
@@ -65,28 +69,22 @@ const SignupScreen = ({ navigation }) => {
     setLoading(true);
     
     try {
-      // Attempt to create user
       await authService.signup(email, password);
-      
-      // Optional: Show success message or navigate
-      Alert.alert('Success', 'Account created successfully');
-      
-      // Optionally navigate to login or directly log in
+      Alert.alert(t('signup.accountCreated'));
       navigation.replace('Login');
-    } catch (err) {
-      // Handle specific Firebase auth errors
+    } catch (err: any) {
       switch (err.code) {
         case 'auth/email-already-in-use':
-          setError('Email is already registered');
+          setError(t('signup.emailAlreadyInUse'));
           break;
         case 'auth/invalid-email':
-          setError('Invalid email address');
+          setError(t('signup.invalidEmail'));
           break;
         case 'auth/weak-password':
-          setError('Password is too weak');
+          setError(t('signup.weakPassword'));
           break;
         default:
-          setError('Signup failed. Please try again.');
+          setError(t('signup.signupFailed'));
       }
     } finally {
       setLoading(false);
@@ -97,65 +95,63 @@ const SignupScreen = ({ navigation }) => {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
+      testID="signup-screen"
     >
-
       <View style={styles.innerContainer}>
         <Input 
-          placeholder="Email"
+          placeholder={t('signup.emailPlaceholder')}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          accessibilityLabel={t('signup.emailPlaceholder')}
+          testID="email-input"
+          style={styles.formControl}
+          error={error}
         />
         <Input 
-          placeholder="Password"
+          placeholder={t('signup.passwordPlaceholder')}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          accessibilityLabel={t('signup.passwordPlaceholder')}
+          testID="password-input"
+          style={styles.formControl}
+          error={error}
         />
         <Input 
-          placeholder="Confirm Password"
+          placeholder={t('signup.confirmPasswordPlaceholder')}
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry
+          accessibilityLabel={t('signup.confirmPasswordPlaceholder')}
+          testID="confirm-password-input"
+          style={styles.formControl}
+          error={error}
         />
         
-        {error ? <ErrorMessage message={error} /> : null}
+        {error ? <ErrorMessage message={error} testID="error-message" style={styles.formControl} /> : null}
         
         <Button 
-          title="Sign Up" 
+          title={t('signup.signupButton')}
           onPress={handleSignup}
-          loading={loading}
-          disabled={loading}
+          loading={loading || authLoading}
+          disabled={loading || authLoading}
+          testID="signup-button"
+          style={styles.formControl}
+          textStyle={{}}
         />
         
         <Button 
-          title="Already have an account? Login" 
+          title={t('signup.loginPrompt') + ' ' + t('signup.loginLink')}
           onPress={() => navigation.navigate('Login')}
           style={styles.loginButton}
           textStyle={styles.loginButtonText}
+          testID="login-link"
         />
       </View>
     </KeyboardAvoidingView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  innerContainer: {
-    padding: 20,
-  },
-  loginButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#007bff',
-  },
-  loginButtonText: {
-    color: '#007bff',
-  },
-});
 
 export default SignupScreen;

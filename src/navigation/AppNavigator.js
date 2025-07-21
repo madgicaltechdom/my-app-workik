@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useFirebaseAuth } from '../hooks/useFirebaseAuth';
+import { ProfileProvider } from '../features/profile/contexts/ProfileContext';
 import AuthNavigator from './AuthNavigator';
 import TabNavigator from './TabNavigator';
 import LoadingOverlay from '../components/common/LoadingOverlay';
@@ -16,9 +17,11 @@ const AppNavigator = ({ linking }) => {
   }
 
   return (
-    <NavigationContainer linking={linking}>
-      {user ? <TabNavigator /> : <AuthNavigator />}
-    </NavigationContainer>
+    <ProfileProvider>
+      <NavigationContainer linking={linking}>
+        {user ? <TabNavigator /> : <AuthNavigator />}
+      </NavigationContainer>
+    </ProfileProvider>
   );
 };
 

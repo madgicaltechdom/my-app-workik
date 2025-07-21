@@ -1,5 +1,5 @@
 import React, { useReducer, useCallback } from 'react';
-import { KeyboardAvoidingView, Platform, useWindowDimensions, TouchableOpacity, useColorScheme } from 'react-native';
+import { KeyboardAvoidingView, Platform, useWindowDimensions, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { useTheme } from 'styled-components/native';
 import {
   Container,
@@ -12,7 +12,7 @@ import {
   FooterLink,
 } from './LoginScreen.styles';
 import { authService } from '../../../services/authService';
-import { t, SupportedLocale } from '../../../localization';
+import { useTranslation } from '../../../localization';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 interface LoginState {
@@ -54,8 +54,7 @@ interface LoginScreenProps {
 }
 
 export function LoginScreen({ navigation }: LoginScreenProps) {
-  // For demo, default to 'en'. In a real app, use device/setting.
-  const locale: SupportedLocale = 'en';
+  const { t } = useTranslation();
   const [{ email, password, isLoading, error }, dispatch] = useReducer(loginReducer, {
     email: '',
     password: '',
@@ -72,7 +71,7 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
     const sanitizedPassword = password.trim();
     // Basic validation
     if (!sanitizedEmail || !sanitizedPassword) {
-      dispatch({ type: 'SET_ERROR', payload: t(locale, 'login.bothRequired') });
+      dispatch({ type: 'SET_ERROR', payload: t('login.bothRequired') });
       return;
     }
     // Optional: Add regex for email validation if needed
@@ -83,16 +82,16 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
     } catch (err: any) {
       switch (err.code) {
         case 'auth/invalid-email':
-          dispatch({ type: 'SET_ERROR', payload: t(locale, 'login.invalidEmail') });
+          dispatch({ type: 'SET_ERROR', payload: t('login.invalidEmail') });
           break;
         case 'auth/user-not-found':
-          dispatch({ type: 'SET_ERROR', payload: t(locale, 'login.userNotFound') });
+          dispatch({ type: 'SET_ERROR', payload: t('login.userNotFound') });
           break;
         case 'auth/wrong-password':
-          dispatch({ type: 'SET_ERROR', payload: t(locale, 'login.wrongPassword') });
+          dispatch({ type: 'SET_ERROR', payload: t('login.wrongPassword') });
           break;
         default:
-          dispatch({ type: 'SET_ERROR', payload: t(locale, 'login.loginFailed') });
+          dispatch({ type: 'SET_ERROR', payload: t('login.loginFailed') });
       }
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -103,50 +102,58 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      testID="login-screen"
     >
       <Container $width={width} $colorScheme={colorScheme}>
-        <Title accessibilityRole="header" accessibilityLabel={t(locale, 'login.loginScreenTitle')}>
-          {t(locale, 'login.title')}
+        <Title 
+          accessibilityRole="header" 
+          accessibilityLabel={t('login.loginScreenTitle')}
+          testID="login-title">
+          {t('login.title')}
         </Title>
-        <StyledInput
-          placeholder={t(locale, 'login.emailPlaceholder')}
-          value={email}
-          onChangeText={text => dispatch({ type: 'SET_EMAIL', payload: text })}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          accessible
-          accessibilityLabel={t(locale, 'login.emailPlaceholder')}
-          error={error}
-          testID="login-email-input"
-        />
-        <StyledInput
-          placeholder={t(locale, 'login.passwordPlaceholder')}
-          value={password}
-          onChangeText={text => dispatch({ type: 'SET_PASSWORD', payload: text })}
-          secureTextEntry
-          accessible
-          accessibilityLabel={t(locale, 'login.passwordPlaceholder')}
-          error={error}
-          testID="login-password-input"
-        />
+        <View testID="email-input-container">
+          <StyledInput
+            placeholder={t('login.emailPlaceholder')}
+            value={email}
+            onChangeText={text => dispatch({ type: 'SET_EMAIL', payload: text })}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            accessible
+            accessibilityLabel={t('login.emailPlaceholder')}
+            error={error}
+            testID="email-input"
+          />
+        </View>
+        <View testID="password-input-container">
+          <StyledInput
+            placeholder={t('login.passwordPlaceholder')}
+            value={password}
+            onChangeText={text => dispatch({ type: 'SET_PASSWORD', payload: text })}
+            secureTextEntry
+            accessible
+            accessibilityLabel={t('login.passwordPlaceholder')}
+            error={error}
+            testID="password-input"
+          />
+        </View>
         <StyledErrorMessage message={error} testID="login-error-message" />
         <StyledButton
-          title={t(locale, 'login.loginButton')}
+          title={t('login.loginButton')}
           onPress={handleLogin}
           loading={isLoading}
           disabled={isLoading}
           textStyle={{ fontWeight: 'bold' }}
-          testID="login-submit-button"
+          testID="login-button"
         />
         <Footer>
-          <FooterText>{t(locale, 'login.signupPrompt')}</FooterText>
+          <FooterText>{t('login.signupPrompt')}</FooterText>
           <TouchableOpacity
             onPress={() => navigation.navigate('Signup')}
             accessibilityRole="button"
-            accessibilityLabel={t(locale, 'login.goToSignup')}
+            accessibilityLabel={t('login.goToSignup')}
             testID="login-signup-link"
           >
-            <FooterLink>{t(locale, 'login.signupLink')}</FooterLink>
+            <FooterLink>{t('login.signupLink')}</FooterLink>
           </TouchableOpacity>
         </Footer>
       </Container>

@@ -8,7 +8,7 @@ import {
 
 const LoadingOverlay = ({ message = 'Loading...' }) => {
   return (
-    <View style={styles.overlay}>
+    <View style={styles.overlay} testID="loading-overlay">
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#007bff" />
         <Text style={styles.message}>{message}</Text>

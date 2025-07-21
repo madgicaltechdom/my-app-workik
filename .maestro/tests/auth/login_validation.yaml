@@ -1,0 +1,90 @@
+appId: com.madgicaltechdom.storageapp
+
+env:
+  VALID_EMAIL: "test@example.com"
+  VALID_PASSWORD: "Password123!"
+  INVALID_EMAIL: "notanemail"
+  EMPTY_EMAIL: ""
+  EMPTY_PASSWORD: ""
+  LONG_EMAIL: "verylongemailaddressthatmightcauseissues@reallyreallylongdomainname.com"
+  SPECIAL_CHARS_PASSWORD: "P@ssw0rd!#$%^&*()"
+
+flows:
+  main:
+    # Load Page Object Model
+    - runScript: ../../elements/auth.js
+    
+    # Launch app with clean state
+    - launchApp:
+        clearState: true
+        
+    # Test Case 1: Empty Fields
+    - tapOn:
+        id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.login.errorMessage}
+        text: "Please enter both email and password"
+        
+    # Test Case 2: Invalid Email Format
+    - tapOn:
+        id: ${output.login.emailInput}
+    - inputText: ${INVALID_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - inputText: ${VALID_PASSWORD}
+    - tapOn:
+        id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.login.errorMessage}
+        text: "Invalid email address"
+        
+    # Test Case 3: Valid Email, Empty Password
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - inputText: ${VALID_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - eraseText
+    - tapOn:
+        id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.login.errorMessage}
+        text: "Please enter both email and password"
+        
+    # Test Case 4: Long Email (Edge Case)
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - inputText: ${LONG_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - inputText: ${VALID_PASSWORD}
+    - tapOn:
+        id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.login.loadingOverlay}
+        
+    # Test Case 5: Special Characters in Password
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - inputText: ${VALID_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - eraseText
+    - inputText: ${SPECIAL_CHARS_PASSWORD}
+    - tapOn:
+        id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.login.loadingOverlay}
+
+metadata:
+  name: "Login - Input Validation"
+  description: "Tests login form validation for various input scenarios"
+  author: "Test Team"
+  tags:
+    - auth
+    - login
+    - validation
+    - edge-cases

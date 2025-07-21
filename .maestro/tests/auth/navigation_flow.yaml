@@ -1,0 +1,77 @@
+appId: com.madgicaltechdom.storageapp
+
+env:
+  VALID_EMAIL: "test@example.com"
+  VALID_PASSWORD: "Password123!"
+
+flows:
+  main:
+    # Load Page Object Model
+    - runScript: ../../elements/auth.js
+    
+    # Launch app with clean state
+    - launchApp:
+        clearState: true
+        
+    # Verify initial navigation state (should be on login screen)
+    - assertVisible:
+        id: ${output.login.container}
+        
+    # Navigate to Signup screen
+    - tapOn:
+        id: ${output.login.signupLink}
+    - assertVisible:
+        id: ${output.signup.container}
+        
+    # Navigate back to Login
+    - tapOn:
+        id: ${output.signup.loginLink}
+    - assertVisible:
+        id: ${output.login.container}
+        
+    # Navigate to Forgot Password
+    - tapOn:
+        id: ${output.login.forgotPasswordLink}
+    - assertVisible:
+        id: ${output.forgotPassword.container}
+        
+    # Navigate back to Login
+    - tapOn:
+        id: ${output.forgotPassword.backButton}
+    - assertVisible:
+        id: ${output.login.container}
+        
+    # Login successfully and verify navigation to Home
+    - tapOn:
+        id: ${output.login.emailInput}
+    - inputText: ${VALID_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - inputText: ${VALID_PASSWORD}
+    - tapOn:
+        id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.home.container}
+        
+    # Verify tab navigation after login
+    - tapOn:
+        id: ${output.navigation.profileTab}
+    - assertVisible:
+        id: ${output.profile.container}
+    - tapOn:
+        id: ${output.navigation.settingsTab}
+    - assertVisible:
+        id: ${output.settings.container}
+    - tapOn:
+        id: ${output.navigation.homeTab}
+    - assertVisible:
+        id: ${output.home.container}
+
+metadata:
+  name: "Auth Navigation Flow"
+  description: "Tests navigation between auth screens and post-login navigation"
+  author: "Test Team"
+  tags:
+    - auth
+    - navigation
+    - integration
