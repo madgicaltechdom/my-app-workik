@@ -1,302 +1,348 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useWindowDimensions, ScrollView } from 'react-native';
-import { useTheme } from 'styled-components/native';
-import { useProfile } from '../contexts/ProfileContext';
+import { 
+  View, 
+  Text, 
+  ActivityIndicator, 
+  Alert, 
+  ScrollView, 
+  useWindowDimensions,
+  StyleSheet
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import i18n from '../../../localization/i18n';
-import { validateEmail, validatePhoneNumber, validateDate, sanitizeInput } from '../../../utils/validation';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { MainStackParamList } from '../../../types';
+import { useUser } from '../../../contexts/UserContext';
+import { useTranslation } from 'react-i18next';
 
-import Button from '../../../components/common/Button';
-import Input from '../../../components/common/Input';
+// Import styled components
 import {
   Container,
-  ProfileContainer,
-  Avatar,
-  NameText,
-  EmailText,
-  InfoContainer,
-  InfoBox,
-  InfoTitle,
-  InfoValue,
-  LogoutButtonStyled,
-  EditButtonStyled,
-  EditButtonText
-} from './ProfileScreen.styles';
+  Title,
+  FormContainer,
+  FormField,
+  Label,
+  Input,
+  ErrorText,
+  ButtonContainer,
+  Button,
+  ButtonText,
+  CancelButton,
+  CancelButtonText,
+  LoadingOverlay,
+} from './UpdateProfileScreen.styles';
 
-const UpdateProfileScreen: React.FC = () => {
-  const { profile: user, setProfile } = useProfile();
-  const { width } = useWindowDimensions();
-  useTheme();
-  const navigation = useNavigation();
-
-  const [profile, setLocalProfile] = useState({
-    displayName: user?.displayName || '',
-    email: user?.email || '',
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    phoneNumber: user?.phoneNumber || '',
-    dateOfBirth: user?.dateOfBirth || '',
-    address: user?.address || {},
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
+// Main form component
+const UpdateProfileForm = () => {
+  console.log('[UpdateProfileScreen] Rendering form component');
+  
+  const { t } = useTranslation();
+  console.log('[UpdateProfileScreen] useTranslation hook initialized');
+  
+  // Add a safe default for the user object
+  const defaultUser = {
+    uid: '',
+    email: '',
+    displayName: '',
+    phoneNumber: '',
+    photoURL: null,
+    emailVerified: false,
+  };
+  
+  const { user = defaultUser, updateUser, isLoading: isUserLoading, error: userError } = useUser();
+  
+  // Log user state changes
   useEffect(() => {
+    console.log('[UpdateProfileScreen] User state updated:', {
+      hasUser: !!user,
+      user: user ? { ...user, email: user.email || 'no-email' } : 'null',
+      isUserLoading,
+      userError: userError || 'none'
+    });
+  }, [user, isUserLoading, userError]);
+  
+  const [isReady, setIsReady] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState({
+    displayName: '',
+    email: '',
+    phone: '',
+    bio: '',
+  });
+  
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
+  
+  // Constants
+  const MAX_BIO_LENGTH = 200;
+  const MAX_NAME_LENGTH = 50;
+
+  // Initialize form with user data
+  useEffect(() => {
+    console.log('[UpdateProfileScreen] Initializing form with user data');
     if (user) {
-      setLocalProfile({
+      console.log('[UpdateProfileScreen] Setting form data from user:', {
         displayName: user.displayName || '',
         email: user.email || '',
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        phoneNumber: user.phoneNumber || '',
-        dateOfBirth: user.dateOfBirth || '',
-        address: user.address || {},
+        phone: user.phoneNumber || '',
+        bio: user.bio || '',
       });
+      
+      setFormData({
+        displayName: user.displayName || '',
+        email: user.email || '',
+        phone: user.phoneNumber || '',
+        bio: user.bio || '',
+      });
+      setIsReady(true);
+    } else {
+      console.log('[UpdateProfileScreen] No user data available for form initialization');
+      setIsReady(false);
     }
   }, [user]);
 
-  const validateAllFields = useCallback((): boolean => {
+  // Safe translation function with fallback
+  const safeT = useCallback((key: string, defaultValue: string = ''): string => {
+    if (!key) return defaultValue;
+    try {
+      const result = t(key, { defaultValue });
+      return typeof result === 'string' ? result : defaultValue;
+    } catch (error) {
+      console.warn(`[UpdateProfileScreen] Translation error for key "${key}":`, error);
+      return defaultValue;
+    }
+  }, [t]);
+
+  // Validate form fields
+  const validateForm = useCallback((): boolean => {
+    console.log('[UpdateProfileScreen] Validating form data:', formData);
     const newErrors: Record<string, string> = {};
-    if (!profile.displayName.trim()) {
-      newErrors.displayName = i18n.t('profile.errors.displayNameRequired') || 'Display name is required.';
+    
+    if (!formData.displayName.trim()) {
+      newErrors.displayName = safeT('profile.validation.displayName.required', 'Display name is required');
+    } else if (formData.displayName.length > MAX_NAME_LENGTH) {
+      newErrors.displayName = safeT('profile.validation.displayName.tooLong', `Display name must be less than ${MAX_NAME_LENGTH} characters`);
     }
-    if (!profile.email.trim() || !validateEmail(profile.email)) {
-      newErrors.email = i18n.t('profile.errors.invalidEmail') || 'Please enter a valid email.';
+
+    if (formData.phone && !/^\+?[\d\s-]{10,}$/.test(formData.phone)) {
+      newErrors.phone = safeT('profile.validation.phone.invalid', 'Please enter a valid phone number');
     }
-    if (profile.phoneNumber && !validatePhoneNumber(profile.phoneNumber)) {
-      newErrors.phoneNumber = i18n.t('profile.errors.invalidPhone') || 'Phone number is invalid.';
+
+    if (formData.bio && formData.bio.length > MAX_BIO_LENGTH) {
+      newErrors.bio = safeT('profile.validation.bio.tooLong', `Bio must be less than ${MAX_BIO_LENGTH} characters`);
     }
-    if (profile.dateOfBirth && !validateDate(profile.dateOfBirth)) {
-      newErrors.dateOfBirth = i18n.t('profile.errors.invalidDate') || 'Date of birth is invalid.';
-    }
+
     setErrors(newErrors);
+    console.log('[UpdateProfileScreen] Validation errors:', newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [profile]);
+  }, [formData, safeT]);
 
-  const handleChange = (field: string, value: any) => {
-    setLocalProfile(prev => ({
+  const handleInputChange = (field: string, value: string) => {
+    console.log(`[UpdateProfileScreen] Input changed - ${field}:`, value);
+    // Clear error when user types
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
+    
+    setFormData(prev => ({
       ...prev,
-      [field]: typeof value === 'string' ? sanitizeInput(value) : value,
-    }));
-  };
-
-  const handleAddressChange = (field: string, value: string) => {
-    setLocalProfile(prev => ({
-      ...prev,
-      address: {
-        ...prev.address,
-        [field]: sanitizeInput(value),
-      },
+      [field]: value
     }));
   };
 
   const handleSubmit = async () => {
-    if (!validateAllFields()) {
+    console.log('[UpdateProfileScreen] Form submitted');
+    
+    if (!user) {
+      Alert.alert(
+        safeT('common.error', 'Error'),
+        safeT('profile.errors.userNotAvailable', 'User not available')
+      );
       return;
     }
+
+    if (!validateForm()) {
+      console.log('[UpdateProfileScreen] Form validation failed');
+      return;
+    }
+
     try {
-      setProfile?.(profile);
-      navigation.goBack();
+      setIsSubmitting(true);
+      console.log('[UpdateProfileScreen] Updating user profile...');
+      
+      await updateUser({
+        ...user,
+        displayName: formData.displayName.trim(),
+        phoneNumber: formData.phone.trim(),
+        bio: formData.bio.trim(),
+      });
+      
+      console.log('[UpdateProfileScreen] Profile updated successfully');
+      Alert.alert(
+        safeT('common.success', 'Success'),
+        safeT('profile.updateSuccess', 'Profile updated successfully'),
+        [
+          {
+            text: safeT('common.ok', 'OK'),
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
+      
     } catch (error) {
-      // Optionally show error
+      console.error('[UpdateProfileScreen] Error updating profile:', error);
+      Alert.alert(
+        safeT('common.error', 'Error'),
+        error instanceof Error ? error.message : safeT('common.unknownError', 'An unknown error occurred')
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  if (!isReady) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
-    <Container $width={width} testID="update-profile-screen">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} accessible accessibilityLabel={i18n.t('profile.editProfile')}>
-        <ProfileContainer>
-          <Avatar
-            source={require('../../../../assets/default-avatar.png')}
-            accessibilityLabel={i18n.t('profile.avatar')}
-            testID="avatar-image"
-          />
-          <NameText allowFontScaling accessibilityRole="header" testID="profile-name">
-            {profile.displayName || i18n.t('profile.defaultName')}
-          </NameText>
-          <EmailText allowFontScaling>{profile.email || i18n.t('profile.noEmail')}</EmailText>
-
-          <InfoContainer>
-            <InfoBox>
-              <InfoTitle allowFontScaling>{i18n.t('profile.name')}</InfoTitle>
-              <InfoValue allowFontScaling>
-                <Input
-                  testID="input-displayName"
-                  placeholder={i18n.t('profile.displayName') || 'Display Name'}
-                  value={profile.displayName}
-                  onChangeText={(text) => handleChange('displayName', text)}
-                  accessibilityLabel={i18n.t('profile.displayName') || 'Display Name'}
-                  accessible
-                  keyboardType="default"
-                  autoCapitalize="words"
-                  error={errors.displayName}
-                  style={{}}
-                />
-              </InfoValue>
-            </InfoBox>
-            <InfoBox>
-              <InfoTitle allowFontScaling>{i18n.t('profile.email')}</InfoTitle>
-              <InfoValue allowFontScaling>
-                <Input
-                  testID="input-email"
-                  placeholder={i18n.t('profile.email') || 'Email'}
-                  value={profile.email}
-                  onChangeText={(text) => handleChange('email', text)}
-                  accessibilityLabel={i18n.t('profile.email') || 'Email'}
-                  accessible
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  error={errors.email}
-                  editable={false}
-                  style={{}}
-                />
-              </InfoValue>
-            </InfoBox>
-            <InfoBox>
-              <InfoTitle allowFontScaling>{i18n.t('profile.firstName')}</InfoTitle>
-              <InfoValue allowFontScaling>
-                <Input
-                  testID="input-firstName"
-                  placeholder={i18n.t('profile.firstName') || 'First Name'}
-                  value={profile.firstName}
-                  onChangeText={(text) => handleChange('firstName', text)}
-                  accessibilityLabel={i18n.t('profile.firstName') || 'First Name'}
-                  accessible
-                  keyboardType="default"
-                  autoCapitalize="words"
-                  error={''}
-                  style={{}}
-                />
-              </InfoValue>
-            </InfoBox>
-            <InfoBox>
-              <InfoTitle allowFontScaling>{i18n.t('profile.lastName')}</InfoTitle>
-              <InfoValue allowFontScaling>
-                <Input
-                  testID="input-lastName"
-                  placeholder={i18n.t('profile.lastName') || 'Last Name'}
-                  value={profile.lastName}
-                  onChangeText={(text) => handleChange('lastName', text)}
-                  accessibilityLabel={i18n.t('profile.lastName') || 'Last Name'}
-                  accessible
-                  keyboardType="default"
-                  autoCapitalize="words"
-                  error={''}
-                  style={{}}
-                />
-              </InfoValue>
-            </InfoBox>
-            <InfoBox>
-              <InfoTitle allowFontScaling>{i18n.t('profile.phoneNumber')}</InfoTitle>
-              <InfoValue allowFontScaling>
-                <Input
-                  testID="input-phoneNumber"
-                  placeholder={i18n.t('profile.phoneNumber') || 'Phone Number'}
-                  value={profile.phoneNumber}
-                  onChangeText={(text) => handleChange('phoneNumber', text)}
-                  accessibilityLabel={i18n.t('profile.phoneNumber') || 'Phone Number'}
-                  accessible
-                  keyboardType="phone-pad"
-                  error={errors.phoneNumber}
-                  style={{}}
-                />
-              </InfoValue>
-            </InfoBox>
-            <InfoBox>
-              <InfoTitle allowFontScaling>{i18n.t('profile.dateOfBirth')}</InfoTitle>
-              <InfoValue allowFontScaling>
-                <Input
-                  testID="input-dateOfBirth"
-                  placeholder={i18n.t('profile.dateOfBirth') || 'Date of Birth (YYYY-MM-DD)'}
-                  value={profile.dateOfBirth}
-                  onChangeText={(text) => handleChange('dateOfBirth', text)}
-                  accessibilityLabel={i18n.t('profile.dateOfBirth') || 'Date of Birth'}
-                  accessible
-                  keyboardType="default"
-                  autoCapitalize="none"
-                  error={errors.dateOfBirth}
-                  style={{}}
-                />
-              </InfoValue>
-            </InfoBox>
-            <InfoBox>
-              <InfoTitle allowFontScaling>{i18n.t('profile.address')}</InfoTitle>
-              <InfoValue allowFontScaling>
-                <Input
-                  testID="input-street"
-                  placeholder={i18n.t('profile.street') || 'Street'}
-                  value={profile.address?.street || ''}
-                  onChangeText={(text) => handleAddressChange('street', text)}
-                  accessibilityLabel={i18n.t('profile.street') || 'Street'}
-                  accessible
-                  keyboardType="default"
-                  autoCapitalize="words"
-                  error={''}
-                  style={{}}
-                />
-                <Input
-                  testID="input-city"
-                  placeholder={i18n.t('profile.city') || 'City'}
-                  value={profile.address?.city || ''}
-                  onChangeText={(text) => handleAddressChange('city', text)}
-                  accessibilityLabel={i18n.t('profile.city') || 'City'}
-                  accessible
-                  keyboardType="default"
-                  autoCapitalize="words"
-                  error={''}
-                  style={{}}
-                />
-                <Input
-                  testID="input-state"
-                  placeholder={i18n.t('profile.state') || 'State/Province'}
-                  value={profile.address?.state || ''}
-                  onChangeText={(text) => handleAddressChange('state', text)}
-                  accessibilityLabel={i18n.t('profile.state') || 'State/Province'}
-                  accessible
-                  keyboardType="default"
-                  autoCapitalize="words"
-                  error={''}
-                  style={{}}
-                />
-                <Input
-                  testID="input-zipCode"
-                  placeholder={i18n.t('profile.zipCode') || 'Zip/Postal Code'}
-                  value={profile.address?.zipCode || ''}
-                  onChangeText={(text) => handleAddressChange('zipCode', text)}
-                  accessibilityLabel={i18n.t('profile.zipCode') || 'Zip/Postal Code'}
-                  accessible
-                  keyboardType="numeric"
-                  error={''}
-                  style={{}}
-                />
-                <Input
-                  testID="input-country"
-                  placeholder={i18n.t('profile.country') || 'Country'}
-                  value={profile.address?.country || ''}
-                  onChangeText={(text) => handleAddressChange('country', text)}
-                  accessibilityLabel={i18n.t('profile.country') || 'Country'}
-                  accessible
-                  keyboardType="default"
-                  autoCapitalize="words"
-                  error={''}
-                  style={{}}
-                />
-              </InfoValue>
-            </InfoBox>
-          </InfoContainer>
-
-          <EditButtonStyled
-            onPress={handleSubmit}
-            accessibilityRole="button"
-            accessibilityLabel={i18n.t('profile.saveButton') || 'Save Profile'}
-            testID="button-save-profile"
-            activeOpacity={0.7}
-          >
-            <EditButtonText allowFontScaling>{i18n.t('profile.saveButton') || 'Save Profile'}</EditButtonText>
-          </EditButtonStyled>
-        </ProfileContainer>
+    <Container $width={Math.min(width - 48, 400)}>
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Title>{safeT('updateProfile.title', 'Update Profile')}</Title>
+        
+        <FormContainer>
+          <FormField>
+            <Label>{safeT('common.displayName', 'Display Name')}</Label>
+            <Input
+              value={formData.displayName}
+              onChangeText={(text) => handleInputChange('displayName', text)}
+              placeholder={safeT('common.enterDisplayName', 'Enter your display name')}
+              placeholderTextColor="#999"
+              testID="input-displayName"
+            />
+            {errors.displayName && <ErrorText>{errors.displayName}</ErrorText>}
+          </FormField>
+          
+          <FormField>
+            <Label>{safeT('common.email', 'Email')}</Label>
+            <Input
+              value={formData.email}
+              onChangeText={(text) => handleInputChange('email', text)}
+              placeholder={safeT('common.enterEmail', 'Enter your email')}
+              placeholderTextColor="#999"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              editable={false}
+              selectTextOnFocus={false}
+              testID="input-email"
+            />
+          </FormField>
+          
+          <FormField>
+            <Label>{safeT('common.phone', 'Phone')}</Label>
+            <Input
+              value={formData.phone}
+              onChangeText={(text) => handleInputChange('phone', text)}
+              placeholder={safeT('common.enterPhone', 'Enter your phone number')}
+              placeholderTextColor="#999"
+              keyboardType="phone-pad"
+              testID="input-phone"
+            />
+            {errors.phone && <ErrorText>{errors.phone}</ErrorText>}
+          </FormField>
+          
+          <FormField>
+            <Label>{safeT('common.bio', 'Bio')}</Label>
+            <Input
+              value={formData.bio}
+              onChangeText={(text) => handleInputChange('bio', text)}
+              placeholder={safeT('common.enterBio', 'Enter your bio')}
+              placeholderTextColor="#999"
+              multiline
+              testID="input-bio"
+            />
+            {errors.bio && <ErrorText>{errors.bio}</ErrorText>}
+          </FormField>
+          
+          <ButtonContainer>
+            <Button 
+              onPress={handleSubmit} 
+              disabled={isSubmitting}
+              testID="save-button"
+            >
+              <ButtonText>
+                {isSubmitting ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  safeT('common.save', 'Save Changes')
+                )}
+              </ButtonText>
+            </Button>
+            
+            <CancelButton 
+              onPress={() => navigation.goBack()}
+              disabled={isSubmitting}
+              testID="cancel-button"
+            >
+              <CancelButtonText>
+                {safeT('common.cancel', 'Cancel')}
+              </CancelButtonText>
+            </CancelButton>
+          </ButtonContainer>
+        </FormContainer>
       </ScrollView>
+      
+      {isSubmitting && (
+        <LoadingOverlay testID="loading-overlay">
+          <ActivityIndicator size="large" color="#ffffff" />
+        </LoadingOverlay>
+      )}
     </Container>
   );
 };
 
-export default UpdateProfileScreen;
+// Main component
+export default function UpdateProfileScreen() {
+  return (
+    <ErrorBoundary fallback={<Text>Something went wrong</Text>}>
+      <UpdateProfileForm />
+    </ErrorBoundary>
+  );
+}
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  errorText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ff3b30',
+    marginBottom: 8,
+  },
+  errorDetails: {
+    fontSize: 16,
+    color: '#8e8e93',
+    textAlign: 'center',
+    paddingHorizontal: 24,
+  },
+});
