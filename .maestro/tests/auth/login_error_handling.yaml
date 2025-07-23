@@ -1,10 +1,13 @@
 appId: com.madgicaltechdom.storageapp
 
 env:
-  NONEXISTENT_EMAIL: "nonexistent@example.com"
-  WRONG_PASSWORD: "WrongPassword123!"
   VALID_EMAIL: "test@example.com"
   VALID_PASSWORD: "Password123!"
+  INVALID_EMAIL: "nonexistent@example.com"
+  WRONG_PASSWORD: "WrongPassword123!"
+  NETWORK_ERROR_EMAIL: "networkerror@example.com"
+  DISABLED_ACCOUNT_EMAIL: "disabled@example.com"
+  RATE_LIMITED_EMAIL: "ratelimited@example.com"
 
 flows:
   main:
@@ -15,20 +18,36 @@ flows:
     - launchApp:
         clearState: true
         
-    # Test Case 1: User Not Found
+    # Verify login screen is visible
+    - assertVisible:
+        id: ${output.login.screen}
+        
+    # Test Case 1: User Not Found Error
     - tapOn:
         id: ${output.login.emailInput}
-    - inputText: ${NONEXISTENT_EMAIL}
+    - inputText: ${INVALID_EMAIL}
     - tapOn:
         id: ${output.login.passwordInput}
     - inputText: ${VALID_PASSWORD}
     - tapOn:
         id: ${output.login.submitButton}
+    
+    # Verify loading state appears
+    - assertVisible:
+        id: ${output.login.loadingOverlay}
+    
+    # Wait for authentication to complete and error to appear
+    - waitForAnimationToEnd
     - assertVisible:
         id: ${output.login.errorMessage}
-        text: "No user found with this email"
+    - assertVisible:
+        text: "No account found with this email address"
         
-    # Test Case 2: Wrong Password
+    # Verify loading overlay disappears after error
+    - assertNotVisible:
+        id: ${output.login.loadingOverlay}
+        
+    # Test Case 2: Wrong Password Error
     - tapOn:
         id: ${output.login.emailInput}
     - eraseText
@@ -39,12 +58,146 @@ flows:
     - inputText: ${WRONG_PASSWORD}
     - tapOn:
         id: ${output.login.submitButton}
+    
+    # Verify loading state and error handling
+    - assertVisible:
+        id: ${output.login.loadingOverlay}
+    - waitForAnimationToEnd
     - assertVisible:
         id: ${output.login.errorMessage}
-        text: "Incorrect password"
+    - assertVisible:
+        text: "Incorrect password. Please try again."
         
-    # Test Case 3: Network Error (need to simulate offline state)
-    - enableNetworkSync
+    # Test Case 3: Network Error Handling
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - inputText: ${NETWORK_ERROR_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - eraseText
+    - inputText: ${VALID_PASSWORD}
+    - tapOn:
+        id: ${output.login.submitButton}
+    
+    # Verify network error handling with retry mechanism
+    - assertVisible:
+        id: ${output.login.loadingOverlay}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.login.errorMessage}
+    - assertVisible:
+        text: "Network error. Please check your connection and try again."
+        
+    # Test Case 4: Account Disabled Error
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - inputText: ${DISABLED_ACCOUNT_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - eraseText
+    - inputText: ${VALID_PASSWORD}
+    - tapOn:
+        id: ${output.login.submitButton}
+    
+    - assertVisible:
+        id: ${output.login.loadingOverlay}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.login.errorMessage}
+    - assertVisible:
+        text: "Your account has been disabled. Please contact support."
+        
+    # Test Case 5: Rate Limiting Error
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - inputText: ${RATE_LIMITED_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - eraseText
+    - inputText: ${VALID_PASSWORD}
+    - tapOn:
+        id: ${output.login.submitButton}
+    
+    - assertVisible:
+        id: ${output.login.loadingOverlay}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.login.errorMessage}
+    - assertVisible:
+        text: "Too many login attempts. Please try again later."
+        
+    # Test Case 6: Error Message Persistence and Clearing
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - inputText: ${INVALID_EMAIL}
+    - tapOn:
+        id: ${output.login.submitButton}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.login.errorMessage}
+    
+    # Error should clear when user starts typing
+    - tapOn:
+        id: ${output.login.emailInput}
+    - inputText: "a"
+    - assertNotVisible:
+        id: ${output.login.errorMessage}
+        
+    # Test Case 7: Form State During Error
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - inputText: ${INVALID_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - eraseText
+    - inputText: ${VALID_PASSWORD}
+    - tapOn:
+        id: ${output.login.submitButton}
+    - waitForAnimationToEnd
+    
+    # Form should remain enabled after error
+    - assertVisible:
+        id: ${output.login.submitButton}
+        enabled: true
+    - assertVisible:
+        id: ${output.login.emailInput}
+        enabled: true
+    - assertVisible:
+        id: ${output.login.passwordInput}
+        enabled: true
+        
+    # Test Case 8: Accessibility - Error Message Announcement
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - inputText: ${INVALID_EMAIL}
+    - tapOn:
+        id: ${output.login.submitButton}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.login.errorMessage}
+        accessibilityRole: "alert"
+        accessibilityLiveRegion: "assertive"
+        
+    # Test Case 9: Multiple Consecutive Errors
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - eraseText
+    - inputText: ${WRONG_PASSWORD}
+    - tapOn:
+        id: ${output.login.submitButton}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.login.errorMessage}
+    - assertVisible:
+        text: "Incorrect password. Please try again."
+        
+    # Test Case 10: Error Recovery - Successful Login After Error
     - tapOn:
         id: ${output.login.emailInput}
     - eraseText
@@ -53,20 +206,27 @@ flows:
         id: ${output.login.passwordInput}
     - eraseText
     - inputText: ${VALID_PASSWORD}
-    - disableNetworkSync
     - tapOn:
         id: ${output.login.submitButton}
+    
+    # Should navigate to home screen on successful login
     - assertVisible:
+        id: ${output.login.loadingOverlay}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.home.screen}
+    - assertNotVisible:
         id: ${output.login.errorMessage}
-        text: "Login failed. Please try again."
-    - enableNetworkSync
 
 metadata:
   name: "Login - Error Handling"
-  description: "Tests login error scenarios and error message display"
+  description: "Tests login error scenarios including authentication failures, network errors, account states, error persistence, accessibility, and recovery flows"
   author: "Test Team"
   tags:
     - auth
     - login
     - error-handling
-    - negative
+    - network-errors
+    - accessibility
+    - user-experience
+    - recovery-flows

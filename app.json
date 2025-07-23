@@ -22,7 +22,8 @@
       "package": "com.madgicaltechdom.storageapp",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
-      }
+      },
+      "edgeToEdge": true
     },
     "web": {},
     "extra": {

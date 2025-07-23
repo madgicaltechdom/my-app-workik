@@ -1,24 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  ActivityIndicator, 
-  Alert, 
-  ScrollView, 
-  useWindowDimensions,
-  StyleSheet
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { MainStackParamList } from '../../../types';
-import { useUser } from '../../../contexts/UserContext';
+import React, { useState, useEffect } from 'react';
+import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-
-// Import styled components
+import { useUser } from '../../../contexts/UserContext';
+import { authService } from '../../../services/authService';
+// Import the ORIGINAL styled components to test if they cause the error
 import {
-  Container,
+  ScrollViewContainer,
   Title,
+  Subtitle,
   FormContainer,
   FormField,
   Label,
@@ -29,320 +18,185 @@ import {
   ButtonText,
   CancelButton,
   CancelButtonText,
-  LoadingOverlay,
 } from './UpdateProfileScreen.styles';
 
-// Main form component
-const UpdateProfileForm = () => {
-  console.log('[UpdateProfileScreen] Rendering form component');
+const UpdateProfileScreen: React.FC = () => {
+  console.log('[UpdateProfileScreen] Rendering screen with I18N INTEGRATION');
   
   const { t } = useTranslation();
-  console.log('[UpdateProfileScreen] useTranslation hook initialized');
+  const { user } = useUser();
   
-  // Add a safe default for the user object
-  const defaultUser = {
-    uid: '',
-    email: '',
-    displayName: '',
-    phoneNumber: '',
-    photoURL: null,
-    emailVerified: false,
-  };
-  
-  const { user = defaultUser, updateUser, isLoading: isUserLoading, error: userError } = useUser();
-  
-  // Log user state changes
-  useEffect(() => {
-    console.log('[UpdateProfileScreen] User state updated:', {
-      hasUser: !!user,
-      user: user ? { ...user, email: user.email || 'no-email' } : 'null',
-      isUserLoading,
-      userError: userError || 'none'
-    });
-  }, [user, isUserLoading, userError]);
-  
-  const [isReady, setIsReady] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [formData, setFormData] = useState({
-    displayName: '',
-    email: '',
-    phone: '',
-    bio: '',
+  // Debug logging for i18n translations
+  console.log('[UpdateProfileScreen] Testing i18n translations:', {
+    title: `"${t('profile.updateProfile')}"`,
+    displayName: `"${t('profile.displayName')}"`,
+    email: `"${t('profile.email')}"`,
+    phone: `"${t('profile.phone')}"`,
+    titleLength: t('profile.updateProfile').length,
+    displayNameLength: t('profile.displayName').length,
+    emailLength: t('profile.email').length,
+    phoneLength: t('profile.phone').length,
   });
   
-  const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
-  
-  // Constants
-  const MAX_BIO_LENGTH = 200;
-  const MAX_NAME_LENGTH = 50;
+  // Add form state that integrates with user data
+  const [formData, setFormData] = useState({
+    displayName: 'Default User',
+    email: 'user@example.com',
+    phone: '', // Allow empty for phone since it's optional
+    bio: '', // Allow empty for bio since it's optional
+    dateOfBirth: '', // Add date of birth field
+  });
 
-  // Initialize form with user data
+  // Debug logging for user data
+  console.log('[UpdateProfileScreen] User from context:', {
+    user: user ? {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      phoneNumber: user.phoneNumber,
+      bio: user.bio,
+      dateOfBirth: user.dateOfBirth,
+    } : 'null',
+    userExists: !!user,
+  });
+
+  // Initialize form with user data when available
   useEffect(() => {
-    console.log('[UpdateProfileScreen] Initializing form with user data');
     if (user) {
-      console.log('[UpdateProfileScreen] Setting form data from user:', {
-        displayName: user.displayName || '',
-        email: user.email || '',
-        phone: user.phoneNumber || '',
-        bio: user.bio || '',
-      });
-      
+      console.log('[UpdateProfileScreen] Setting form data from user');
       setFormData({
-        displayName: user.displayName || '',
-        email: user.email || '',
-        phone: user.phoneNumber || '',
-        bio: user.bio || '',
+        displayName: user.displayName || 'Default User',
+        email: user.email || 'user@example.com', 
+        phone: user.phoneNumber || '', // Allow empty for phone
+        bio: user.bio || '', // Initialize bio from user context
+        dateOfBirth: user.dateOfBirth || '', // Initialize date of birth from user context
       });
-      setIsReady(true);
-    } else {
-      console.log('[UpdateProfileScreen] No user data available for form initialization');
-      setIsReady(false);
     }
   }, [user]);
 
-  // Safe translation function with fallback
-  const safeT = useCallback((key: string, defaultValue: string = ''): string => {
-    if (!key) return defaultValue;
-    try {
-      const result = t(key, { defaultValue });
-      return typeof result === 'string' ? result : defaultValue;
-    } catch (error) {
-      console.warn(`[UpdateProfileScreen] Translation error for key "${key}":`, error);
-      return defaultValue;
-    }
-  }, [t]);
-
-  // Validate form fields
-  const validateForm = useCallback((): boolean => {
-    console.log('[UpdateProfileScreen] Validating form data:', formData);
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.displayName.trim()) {
-      newErrors.displayName = safeT('profile.validation.displayName.required', 'Display name is required');
-    } else if (formData.displayName.length > MAX_NAME_LENGTH) {
-      newErrors.displayName = safeT('profile.validation.displayName.tooLong', `Display name must be less than ${MAX_NAME_LENGTH} characters`);
-    }
-
-    if (formData.phone && !/^\+?[\d\s-]{10,}$/.test(formData.phone)) {
-      newErrors.phone = safeT('profile.validation.phone.invalid', 'Please enter a valid phone number');
-    }
-
-    if (formData.bio && formData.bio.length > MAX_BIO_LENGTH) {
-      newErrors.bio = safeT('profile.validation.bio.tooLong', `Bio must be less than ${MAX_BIO_LENGTH} characters`);
-    }
-
-    setErrors(newErrors);
-    console.log('[UpdateProfileScreen] Validation errors:', newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData, safeT]);
-
   const handleInputChange = (field: string, value: string) => {
-    console.log(`[UpdateProfileScreen] Input changed - ${field}:`, value);
-    // Clear error when user types
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
-    }
-    
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    console.log(`[UpdateProfileScreen] Input change - ${field}: "${value}" (length: ${value.length})`);
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async () => {
-    console.log('[UpdateProfileScreen] Form submitted');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSave = async () => {
+    console.log('[UpdateProfileScreen] Save button pressed');
+    console.log('[UpdateProfileScreen] Form data:', formData);
     
-    if (!user) {
-      Alert.alert(
-        safeT('common.error', 'Error'),
-        safeT('profile.errors.userNotAvailable', 'User not available')
-      );
-      return;
-    }
-
-    if (!validateForm()) {
-      console.log('[UpdateProfileScreen] Form validation failed');
-      return;
-    }
-
+    setIsLoading(true);
+    
     try {
-      setIsSubmitting(true);
-      console.log('[UpdateProfileScreen] Updating user profile...');
-      
-      await updateUser({
-        ...user,
-        displayName: formData.displayName.trim(),
-        phoneNumber: formData.phone.trim(),
-        bio: formData.bio.trim(),
+      const result = await authService.updateUserProfile({
+        displayName: formData.displayName,
+        phoneNumber: formData.phone,
+        bio: formData.bio,
+        dateOfBirth: formData.dateOfBirth,
       });
       
-      console.log('[UpdateProfileScreen] Profile updated successfully');
-      Alert.alert(
-        safeT('common.success', 'Success'),
-        safeT('profile.updateSuccess', 'Profile updated successfully'),
-        [
-          {
-            text: safeT('common.ok', 'OK'),
-            onPress: () => navigation.goBack(),
-          },
-        ]
-      );
-      
+      if (result.success) {
+        Alert.alert(
+          t('profile.updateSuccess.title'),
+          t('profile.updateSuccess.message'),
+          [{ text: t('common.ok') }]
+        );
+        console.log('[UpdateProfileScreen] Profile updated successfully');
+      } else {
+        Alert.alert(
+          t('profile.updateError.title'),
+          result.error || t('profile.updateError.message'),
+          [{ text: t('common.ok') }]
+        );
+        console.error('[UpdateProfileScreen] Profile update failed:', result.error);
+      }
     } catch (error) {
-      console.error('[UpdateProfileScreen] Error updating profile:', error);
+      console.error('[UpdateProfileScreen] Profile update error:', error);
       Alert.alert(
-        safeT('common.error', 'Error'),
-        error instanceof Error ? error.message : safeT('common.unknownError', 'An unknown error occurred')
+        t('profile.updateError.title'),
+        t('profile.updateError.message'),
+        [{ text: t('common.ok') }]
       );
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
-
-  if (!isReady) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
+  
   return (
-    <Container $width={Math.min(width - 48, 400)}>
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Title>{safeT('updateProfile.title', 'Update Profile')}</Title>
-        
-        <FormContainer>
-          <FormField>
-            <Label>{safeT('common.displayName', 'Display Name')}</Label>
-            <Input
-              value={formData.displayName}
-              onChangeText={(text) => handleInputChange('displayName', text)}
-              placeholder={safeT('common.enterDisplayName', 'Enter your display name')}
-              placeholderTextColor="#999"
-              testID="input-displayName"
-            />
-            {errors.displayName && <ErrorText>{errors.displayName}</ErrorText>}
-          </FormField>
-          
-          <FormField>
-            <Label>{safeT('common.email', 'Email')}</Label>
-            <Input
-              value={formData.email}
-              onChangeText={(text) => handleInputChange('email', text)}
-              placeholder={safeT('common.enterEmail', 'Enter your email')}
-              placeholderTextColor="#999"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              editable={false}
-              selectTextOnFocus={false}
-              testID="input-email"
-            />
-          </FormField>
-          
-          <FormField>
-            <Label>{safeT('common.phone', 'Phone')}</Label>
-            <Input
-              value={formData.phone}
-              onChangeText={(text) => handleInputChange('phone', text)}
-              placeholder={safeT('common.enterPhone', 'Enter your phone number')}
-              placeholderTextColor="#999"
-              keyboardType="phone-pad"
-              testID="input-phone"
-            />
-            {errors.phone && <ErrorText>{errors.phone}</ErrorText>}
-          </FormField>
-          
-          <FormField>
-            <Label>{safeT('common.bio', 'Bio')}</Label>
-            <Input
-              value={formData.bio}
-              onChangeText={(text) => handleInputChange('bio', text)}
-              placeholder={safeT('common.enterBio', 'Enter your bio')}
-              placeholderTextColor="#999"
-              multiline
-              testID="input-bio"
-            />
-            {errors.bio && <ErrorText>{errors.bio}</ErrorText>}
-          </FormField>
-          
-          <ButtonContainer>
-            <Button 
-              onPress={handleSubmit} 
-              disabled={isSubmitting}
-              testID="save-button"
-            >
-              <ButtonText>
-                {isSubmitting ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  safeT('common.save', 'Save Changes')
-                )}
-              </ButtonText>
-            </Button>
-            
-            <CancelButton 
-              onPress={() => navigation.goBack()}
-              disabled={isSubmitting}
-              testID="cancel-button"
-            >
-              <CancelButtonText>
-                {safeT('common.cancel', 'Cancel')}
-              </CancelButtonText>
-            </CancelButton>
-          </ButtonContainer>
-        </FormContainer>
-      </ScrollView>
+    <ScrollViewContainer>
+      <Title>{t('profile.updateTitle')}</Title>
+      <Subtitle>{t('profile.updateSubtitle')}</Subtitle>
       
-      {isSubmitting && (
-        <LoadingOverlay testID="loading-overlay">
-          <ActivityIndicator size="large" color="#ffffff" />
-        </LoadingOverlay>
-      )}
-    </Container>
+      {/* Display Name Input */}
+      <FormField>
+        <Label>{t('profile.displayName')}</Label>
+        <Input
+          value={formData.displayName}
+          onChangeText={(text: string) => handleInputChange('displayName', text)}
+          placeholder={t('profile.displayNamePlaceholder')}
+          testID="input-displayName"
+        />
+      </FormField>
+
+      {/* Email Input */}
+      <FormField>
+        <Label>{t('profile.email')}</Label>
+        <Input
+          value={formData.email}
+          onChangeText={(text: string) => handleInputChange('email', text)}
+          placeholder={t('profile.emailPlaceholder')}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          testID="input-email"
+        />
+      </FormField>
+
+      {/* Phone Input */}
+      <FormField>
+        <Label>{t('profile.phoneNumber')}</Label>
+        <Input
+          value={formData.phone}
+          onChangeText={(text: string) => handleInputChange('phone', text)}
+          placeholder={t('profile.phonePlaceholder')}
+          keyboardType="phone-pad"
+          testID="input-phone"
+        />
+      </FormField>
+
+      {/* Bio Input */}
+      <FormField>
+        <Label>{t('profile.bio')}</Label>
+        <Input
+          value={formData.bio}
+          onChangeText={(text: string) => handleInputChange('bio', text)}
+          placeholder={t('profile.bioPlaceholder')}
+          multiline={true}
+          numberOfLines={4}
+          textAlignVertical="top"
+          testID="input-bio"
+        />
+      </FormField>
+
+      {/* Date of Birth Input */}
+      <FormField>
+        <Label>{t('profile.dateOfBirth')}</Label>
+        <Input
+          value={formData.dateOfBirth}
+          onChangeText={(text: string) => handleInputChange('dateOfBirth', text)}
+          placeholder={t('profile.dateOfBirthPlaceholder')}
+          keyboardType="numeric"
+          testID="input-dateOfBirth"
+        />
+      </FormField>
+
+      {/* Save Button */}
+      <ButtonContainer>
+        <Button onPress={handleSave} disabled={isLoading} testID="save-button">
+          <ButtonText>{isLoading ? t('profile.updating') : t('profile.saveChanges')}</ButtonText>
+        </Button>
+      </ButtonContainer>
+    </ScrollViewContainer>
   );
 };
 
-// Main component
-export default function UpdateProfileScreen() {
-  return (
-    <ErrorBoundary fallback={<Text>Something went wrong</Text>}>
-      <UpdateProfileForm />
-    </ErrorBoundary>
-  );
-}
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  errorText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ff3b30',
-    marginBottom: 8,
-  },
-  errorDetails: {
-    fontSize: 16,
-    color: '#8e8e93',
-    textAlign: 'center',
-    paddingHorizontal: 24,
-  },
-});
+export default UpdateProfileScreen;

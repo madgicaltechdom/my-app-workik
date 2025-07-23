@@ -1,13 +1,18 @@
-import React from 'react';
-import { useWindowDimensions, ScrollView, TouchableOpacity, AccessibilityRole } from 'react-native';
-import { useTheme } from 'styled-components/native';
-import { useProfile } from '../contexts/ProfileContext';
+import React, { useEffect } from 'react';
+import { useWindowDimensions } from 'react-native';
+
 import { useNavigation } from '@react-navigation/native';
-import i18n from '../../../localization/i18n';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { MainStackParamList } from '../../../types';
+import { useTranslation } from 'react-i18next';
+import { useUser } from '../../../contexts/UserContext';
 import { authService } from '../../../services/authService';
+import { Button } from '../components/Button';
 import {
   Container,
+  Title,
   ProfileContainer,
+  AvatarContainer,
   Avatar,
   NameText,
   EmailText,
@@ -15,16 +20,31 @@ import {
   InfoBox,
   InfoTitle,
   InfoValue,
-  LogoutButtonStyled,
-  EditButtonStyled,
-  EditButtonText
+  ButtonContainer,
 } from './ProfileScreen.styles';
 
 const ProfileScreen: React.FC = () => {
-  const { profile: user } = useProfile();
+  const { t } = useTranslation();
+  const { user } = useUser();
   const { width } = useWindowDimensions();
-  useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
+  
+  // Handle success message when returning from update
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // User data will be automatically updated through UserContext
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleEditProfile = () => {
+    if (user?.uid) {
+      navigation.navigate('UpdateProfile', {
+        userId: user.uid,
+      });
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -34,85 +54,62 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
-  const handleEditProfile = () => {
-    navigation.navigate('UpdateProfileScreen');
-  };
+  const renderInfoBox = (title: string, value?: string) => (
+    <InfoBox key={title}>
+      <InfoTitle>{title}</InfoTitle>
+      <InfoValue>{value || t('profile.notProvided')}</InfoValue>
+    </InfoBox>
+  );
 
-  // Sanitize and fallback for user fields
-  const firstName = (user?.firstName || '').trim();
-  const lastName = (user?.lastName || '').trim();
-  const phoneNumber = (user?.phoneNumber || '').trim();
-  const dateOfBirth = (user?.dateOfBirth || '').trim();
-  const address = user?.address || {};
+  if (!user) {
+    return (
+      <Container $width={width}>
+        <Title>{t('profile.loading')}</Title>
+      </Container>
+    );
+  }
 
   return (
-    <Container $width={width} testID="profile-screen">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} accessible accessibilityLabel={i18n.t('profile.screenTitle')}>
-        <ProfileContainer testID="profile-header">
+    <Container $width={width}>
+      <ProfileContainer>
+        <Title>{t('profile.title')}</Title>
+        
+        <AvatarContainer>
           <Avatar
-            source={require('../../../../assets/default-avatar.png')}
-            accessibilityLabel={i18n.t('profile.avatar')}
-            testID="avatar-image"
+            source={user.photoURL ? { uri: user.photoURL } : require('../../../../assets/default-avatar.png')}
+            accessibilityLabel={t('profile.avatar')}
           />
-          <NameText allowFontScaling accessibilityRole="header" testID="profile-name">
-            {user?.displayName || `${firstName} ${lastName}` || i18n.t('profile.defaultName')}
-          </NameText>
-          <EmailText allowFontScaling>{user?.email || i18n.t('profile.noEmail')}</EmailText>
+          <NameText>{user.displayName || t('profile.guest')}</NameText>
+          <EmailText testID="user-email">{user.email || 'No email provided'}</EmailText>
+        </AvatarContainer>
 
-          <EditButtonStyled
+        <InfoContainer>
+          {renderInfoBox(t('profile.name'), user.displayName || undefined)}
+          {renderInfoBox(t('profile.email'), user.email || undefined)}
+          {renderInfoBox(t('profile.phoneNumber'), user.phoneNumber || undefined)}
+          {renderInfoBox(t('profile.bio'), user.bio || undefined)}
+          {renderInfoBox(t('profile.dateOfBirth'), user.dateOfBirth)}
+        </InfoContainer>
+
+        <ButtonContainer>
+          <Button
+            title="Edit Profile"
             onPress={handleEditProfile}
-            accessibilityRole="button"
-            accessibilityLabel={i18n.t('profile.editProfile')}
+            style={{ marginBottom: 16 }}
+            variant="primary"
             testID="edit-profile-button"
-            activeOpacity={0.7}
-          >
-            <EditButtonText allowFontScaling>{i18n.t('profile.edit')}</EditButtonText>
-          </EditButtonStyled>
-
-          <InfoContainer>
-            <InfoBox>
-              <InfoTitle allowFontScaling>{i18n.t('profile.emailVerified')}</InfoTitle>
-              <InfoValue allowFontScaling>
-                {user?.emailVerified ? i18n.t('profile.yes') : i18n.t('profile.no')}
-              </InfoValue>
-            </InfoBox>
-            {Boolean(firstName || lastName) && (
-              <InfoBox>
-                <InfoTitle allowFontScaling>{i18n.t('profile.name')}</InfoTitle>
-                <InfoValue allowFontScaling>{`${firstName} ${lastName}`}</InfoValue>
-              </InfoBox>
-            )}
-            {phoneNumber ? (
-              <InfoBox>
-                <InfoTitle allowFontScaling>{i18n.t('profile.phoneNumber')}</InfoTitle>
-                <InfoValue allowFontScaling>{phoneNumber}</InfoValue>
-              </InfoBox>
-            ) : null}
-            {dateOfBirth ? (
-              <InfoBox>
-                <InfoTitle allowFontScaling>{i18n.t('profile.dateOfBirth')}</InfoTitle>
-                <InfoValue allowFontScaling>{dateOfBirth}</InfoValue>
-              </InfoBox>
-            ) : null}
-            {Boolean(address.street || address.city || address.state || address.zipCode || address.country) && (
-              <InfoBox>
-                <InfoTitle allowFontScaling>{i18n.t('profile.address')}</InfoTitle>
-                <InfoValue allowFontScaling>
-                  {[address.street, address.city, address.state, address.zipCode, address.country]
-                    .filter(Boolean)
-                    .join(', ')}
-                </InfoValue>
-              </InfoBox>
-            )}
-          </InfoContainer>
-
-          <LogoutButtonStyled
-            title={i18n.t('profile.logout')}
-            onPress={handleLogout}
-            testID="logout-button"
+            accessibilityLabel={t('profile.editProfile')}
           />
-        </ProfileContainer>
-      </ScrollView>
+          <Button
+            title={t('profile.logout')}
+            onPress={handleLogout}
+            variant="danger"
+            style={{ marginTop: 16 }}
+            testID="logout-button"
+            accessibilityLabel="Logout"
+          />
+        </ButtonContainer>
+      </ProfileContainer>
     </Container>
   );
 };

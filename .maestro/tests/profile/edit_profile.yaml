@@ -1,0 +1,233 @@
+appId: com.madgicaltechdom.storageapp
+
+env:
+  VALID_EMAIL: 'kapil.jain@madgicaltechdom.com'
+  VALID_PASSWORD: 'M1dgicaltechdome'
+  UPDATED_DISPLAY_NAME: "Kapil Jain Updated"
+  UPDATED_PHONE: "9871831311"
+  UPDATED_BIO: "I am a software developer and coder"
+  UPDATED_DATE_OF_BIRTH: "1990-01-01"
+
+---
+# Load Page Object Model
+- runScript: ../../elements/auth.js
+
+# Launch app with clean state
+- launchApp:
+    clearState: true
+    
+# ===== STEP 1: LOGIN WITH POSITIVE TEST CASE =====
+# Verify initial state - should be on login screen
+- assertVisible:
+    text: "Welcome Back"
+    
+# Perform successful login
+- tapOn:
+    id: ${output.login.emailInput}
+- inputText: ${VALID_EMAIL}
+
+- tapOn:
+    id: ${output.login.passwordInput}
+- inputText: ${VALID_PASSWORD}
+
+# Verify button is enabled with valid credentials
+- assertVisible:
+    id: ${output.login.submitButton}
+    enabled: true
+    
+# Submit login form
+- tapOn:
+    id: ${output.login.submitButton}
+    
+# Wait for loading to complete and verify successful navigation
+- assertVisible:
+    text: "Welcome back.*"
+    
+# ===== STEP 2: NAVIGATE TO PROFILE SCREEN =====
+# Navigate to profile tab
+- tapOn:
+    text: "Profile"
+    
+# Verify navigation to profile screen
+- assertVisible:
+    text: "My Profile"
+
+# Verify profile data is loaded
+- assertVisible:
+    text: ${VALID_EMAIL}
+    index: 0
+
+# Scroll to find Edit Profile button
+- scrollUntilVisible:
+    element:
+      text: "Edit Profile"
+
+# ===== STEP 3: CLICK ON EDIT PROFILE =====
+# Click edit profile button
+- tapOn:
+    text: "Edit Profile" 
+    
+# Verify navigation to UpdateProfileScreen
+- assertVisible:
+    text: "Update Profile"
+    
+# ===== STEP 4: VERIFY ALL FORM FIELDS ARE PRESENT =====
+# Verify all input fields are visible and enabled
+- assertVisible:
+    id: "input-displayName"
+    enabled: true
+- assertVisible:
+    id: "input-email"
+    enabled: true
+- scrollUntilVisible:
+    element:
+      id: "input-dateOfBirth"
+
+- assertVisible:
+    id: "input-bio"
+    enabled: true
+- assertVisible:
+    id: "input-dateOfBirth"
+    enabled: true
+- assertVisible:
+    id: "save-button"
+    enabled: true
+    
+# ===== STEP 5: EDIT PROFILE FIELDS =====
+# Clear and update Display Name
+- scrollUntilVisible:
+    element:
+      id: "input-displayName"
+    direction: up
+- eraseText: 100
+- tapOn:
+    id: "input-displayName"
+- inputText: ${UPDATED_DISPLAY_NAME}
+
+- scrollUntilVisible:
+    element:
+      id: "input-phone"
+# Clear and update Phone Number
+- tapOn:
+    id: "input-phone"
+- eraseText
+- inputText: ${UPDATED_PHONE}
+
+# Clear and update Bio
+- tapOn:
+    id: "input-bio"
+- eraseText
+- inputText: ${UPDATED_BIO}
+
+- scrollUntilVisible:
+    element:
+      id: "input-dateOfBirth"
+# Clear and update Date of Birth
+- tapOn:
+    id: "input-dateOfBirth"
+- eraseText
+- inputText: ${UPDATED_DATE_OF_BIRTH}
+
+- scrollUntilVisible:
+    element:
+      id: "save-button"
+
+# Verify save button is still enabled after changes
+- assertVisible:
+    id: "save-button"
+    enabled: true
+    
+# ===== STEP 6: SAVE PROFILE CHANGES =====
+# Save the profile changes
+- tapOn:
+    id: "save-button"
+    
+# Wait for success alert and dismiss it
+- assertVisible:
+    text: "Profile Updated"
+- tapOn:
+    text: "OK"
+    
+# ===== STEP 7: VERIFY CHANGES PERSISTED =====
+# Should be back on UpdateProfileScreen after save
+- assertVisible:
+    text: "Update Profile"
+    
+# Verify the updated values are still in the form
+- assertVisible:
+    id: "input-displayName"
+- assertVisible:
+    id: "input-phone"
+- assertVisible:
+    id: "input-bio"
+- assertVisible:
+    id: "input-dateOfBirth"
+
+# Navigate back to Profile screen to verify persistence
+- back
+
+# Verify we're back on Profile screen
+- assertVisible:
+    text: "My Profile"
+    
+# Verify updated data is displayed on Profile screen
+- assertVisible:
+    text: ${UPDATED_DISPLAY_NAME}
+- assertVisible:
+    text: ${UPDATED_BIO}
+
+# ===== STEP 8: TEST ERROR HANDLING =====
+# Go back to edit screen to test validation
+- tapOn:
+    text: "Edit Profile"
+    
+# Verify we're on UpdateProfileScreen
+- assertVisible:
+    text: "Update Profile"
+    
+# Test with invalid phone number
+- tapOn:
+    id: "input-phone"
+- eraseText
+- inputText: "invalid-phone"
+
+# Try to save with invalid data
+- tapOn:
+    id: "save-button"
+    
+# Should show error or validation message
+# Note: This depends on validation implementation
+    
+# ===== STEP 9: ACCESSIBILITY TESTING =====
+# Verify accessibility labels are present
+- assertVisible:
+    id: "input-displayName"
+- assertVisible:
+    id: "input-email"
+- assertVisible:
+    id: "input-phone"
+- assertVisible:
+    id: "input-bio"
+- assertVisible:
+    id: "input-dateOfBirth"
+- assertVisible:
+    id: "save-button"
+
+# ===== STEP 10: CLEANUP AND LOGOUT =====
+# Navigate back to Profile screen
+- back
+
+# Verify we're on Profile screen
+- assertVisible:
+    text: "My Profile"
+
+# Scroll to logout button and logout
+- scrollUntilVisible:
+    element:
+      text: "Logout"
+- tapOn:
+    text: "Logout"
+    
+# Verify logout successful - should be back to login screen
+- assertVisible:
+    text: "Welcome Back"

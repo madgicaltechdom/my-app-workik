@@ -8,6 +8,7 @@ env:
   EMPTY_PASSWORD: ""
   LONG_EMAIL: "verylongemailaddressthatmightcauseissues@reallyreallylongdomainname.com"
   SPECIAL_CHARS_PASSWORD: "P@ssw0rd!#$%^&*()"
+  WEAK_PASSWORD: "123"
 
 flows:
   main:
@@ -18,14 +19,59 @@ flows:
     - launchApp:
         clearState: true
         
-    # Test Case 1: Empty Fields
+    # Verify login screen is visible
+    - assertVisible:
+        id: ${output.login.screen}
+    - assertVisible:
+        id: ${output.login.title}
+    - assertVisible:
+        id: ${output.login.emailInput}
+    - assertVisible:
+        id: ${output.login.passwordInput}
+    - assertVisible:
+        id: ${output.login.submitButton}
+        
+    # Test Case 1: Empty Email Field
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - inputText: ${VALID_PASSWORD}
     - tapOn:
         id: ${output.login.submitButton}
     - assertVisible:
         id: ${output.login.errorMessage}
-        text: "Please enter both email and password"
+    - assertVisible:
+        text: "Email is required"
         
-    # Test Case 2: Invalid Email Format
+    # Clear password for next test
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - eraseText
+        
+    # Test Case 2: Empty Password Field
+    - tapOn:
+        id: ${output.login.emailInput}
+    - inputText: ${VALID_EMAIL}
+    - tapOn:
+        id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.login.errorMessage}
+    - assertVisible:
+        text: "Password is required"
+        
+    # Clear email for next test
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+        
+    # Test Case 3: Both Fields Empty
+    - tapOn:
+        id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.login.errorMessage}
+    - assertVisible:
+        text: "Email is required"
+        
+    # Test Case 4: Invalid Email Format
     - tapOn:
         id: ${output.login.emailInput}
     - inputText: ${INVALID_EMAIL}
@@ -36,9 +82,10 @@ flows:
         id: ${output.login.submitButton}
     - assertVisible:
         id: ${output.login.errorMessage}
-        text: "Invalid email address"
+    - assertVisible:
+        text: "Please enter a valid email address"
         
-    # Test Case 3: Valid Email, Empty Password
+    # Test Case 5: Valid Email, Weak Password
     - tapOn:
         id: ${output.login.emailInput}
     - eraseText
@@ -46,26 +93,30 @@ flows:
     - tapOn:
         id: ${output.login.passwordInput}
     - eraseText
+    - inputText: ${WEAK_PASSWORD}
     - tapOn:
         id: ${output.login.submitButton}
     - assertVisible:
         id: ${output.login.errorMessage}
-        text: "Please enter both email and password"
+    - assertVisible:
+        text: "Password must be at least 8 characters long"
         
-    # Test Case 4: Long Email (Edge Case)
+    # Test Case 6: Long Email (Edge Case)
     - tapOn:
         id: ${output.login.emailInput}
     - eraseText
     - inputText: ${LONG_EMAIL}
     - tapOn:
         id: ${output.login.passwordInput}
+    - eraseText
     - inputText: ${VALID_PASSWORD}
     - tapOn:
         id: ${output.login.submitButton}
     - assertVisible:
         id: ${output.login.loadingOverlay}
+    - waitForAnimationToEnd
         
-    # Test Case 5: Special Characters in Password
+    # Test Case 7: Special Characters in Password (Should be valid)
     - tapOn:
         id: ${output.login.emailInput}
     - eraseText
@@ -78,13 +129,66 @@ flows:
         id: ${output.login.submitButton}
     - assertVisible:
         id: ${output.login.loadingOverlay}
+    - waitForAnimationToEnd
+        
+    # Test Case 8: Form Validation State (Button should be disabled when fields are empty)
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - eraseText
+    - assertVisible:
+        id: ${output.login.submitButton}
+        enabled: false
+        
+    # Test Case 9: Form Validation State (Button should be enabled when fields are filled)
+    - tapOn:
+        id: ${output.login.emailInput}
+    - inputText: ${VALID_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - inputText: ${VALID_PASSWORD}
+    - assertVisible:
+        id: ${output.login.submitButton}
+        enabled: true
+        
+    # Test Case 10: Accessibility - Check input labels are present
+    - assertVisible:
+        id: ${output.login.emailInput}
+        accessibilityLabel: "Email input"
+    - assertVisible:
+        id: ${output.login.passwordInput}
+        accessibilityLabel: "Password input"
+    - assertVisible:
+        id: ${output.login.submitButton}
+        accessibilityLabel: "Login to your account"
+        
+    # Test Case 11: Navigation Links
+    - assertVisible:
+        id: ${output.login.signupLink}
+    - assertVisible:
+        id: ${output.login.forgotPasswordLink}
+        
+    # Test Case 12: Error Message Accessibility
+    - tapOn:
+        id: ${output.login.emailInput}
+    - eraseText
+    - inputText: ${INVALID_EMAIL}
+    - tapOn:
+        id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.login.errorMessage}
+        accessibilityRole: "alert"
 
 metadata:
   name: "Login - Input Validation"
-  description: "Tests login form validation for various input scenarios"
+  description: "Tests login form validation for various input scenarios including accessibility and form state validation"
   author: "Test Team"
   tags:
     - auth
     - login
     - validation
     - edge-cases
+    - accessibility
+    - form-state

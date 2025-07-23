@@ -1,191 +1,232 @@
-# Login Positive Test Flow
 appId: com.madgicaltechdom.storageapp
+
 env:
-  VALID_EMAIL: "kapil.jain@madgicaltechdom.com"
-  VALID_PASSWORD: "123456"
----
-- runScript: "../../elements/auth.js"
-- launchApp
-- assertVisible: "${output.login.screen}"
-- assertVisible:
-    text: "${output.login.title}"
-- assertVisible: "${output.login.emailInput}"
-- assertVisible: "${output.login.passwordInput}"
-- assertVisible: "${output.login.submitButton}"
-- tapOn: "${output.login.emailInput}"
-- inputText: "${VALID_EMAIL}"
-- tapOn: "${output.login.passwordInput}"
-- inputText: "${VALID_PASSWORD}"
-- tapOn: "${output.login.submitButton}"
-- assertVisible: "${output.login.loadingOverlay}"
-- waitForAnimationToEnd
-- assertNotVisible: "${output.login.errorMessage}"
-- assertVisible: "${output.home.screen}"
-- assertVisible:
-    id: "${output.home.welcomeMessage}"
-    contains: "${VALID_EMAIL}"
-- runScript:
-    file: ../../elements/auth.js
+  VALID_EMAIL: "test@example.com"
+  VALID_PASSWORD: "Password123!"
+  DISPLAY_NAME: "Test User"
 
-- launchApp:
-    clearState: true
-
-- assertVisible:
-    id: ${output.login.screen}
-- assertVisible:
-    text: ${output.login.title}
-- assertVisible:
-    id: ${output.login.emailInput}
-- assertVisible:
-    id: ${output.login.passwordInput}
-- assertVisible:
-    id: ${output.login.submitButton}
-    enabled: false
-
-- tapOn:
-    id: ${output.login.emailInput}
-- assertHasFocus:
-    id: ${output.login.emailInput}
-- inputText: ${VALID_EMAIL}
-- assertVisible:
-    id: ${output.login.emailInput}
-    hasText: ${VALID_EMAIL}
-
-- tapOn:
-    id: ${output.login.passwordInput}
-- assertHasFocus:
-    id: ${output.login.passwordInput}
-- inputText: ${VALID_PASSWORD}
-- assertVisible:
-    id: ${output.login.passwordInput}
-    hasText: true
-
-- assertVisible:
-    id: ${output.login.submitButton}
-    enabled: true
-
-- tapOn:
-    id: ${output.login.submitButton}
-
-- assertVisible:
-    id: ${output.login.loadingOverlay}
-    timeout: 1000
-- assertNotVisible:
-    id: ${output.login.errorMessage}
-
-- waitForAnimationToEnd:
-    timeout: 2000
-
-- assertNotVisible:
-    id: ${output.login.screen}
-- assertVisible:
-    id: ${output.home.screen}
-
-- assertVisible:
-    id: ${output.home.title}
-    text: ${output.home.welcomeTitle}
-- assertVisible:
-    id: ${output.home.welcomeMessage}
-    contains: ${VALID_EMAIL}
-- assertVisible:
-    id: ${output.home.userAvatar}
-
-- assertVisible:
-    id: ${output.navigation.homeTab}
-    isSelected: true
-  # Load Page Object Model
-- runScript: ../../elements/auth.js
+flows:
+  main:
+    # Load Page Object Model
+    - runScript: ../../elements/auth.js
     
     # Launch app with clean state
     - launchApp:
         clearState: true
-    
-    # Verify Login Screen Elements
+        
+    # Verify initial state - should be on login screen
     - assertVisible:
         id: ${output.login.screen}
     - assertVisible:
-        text: ${output.login.title}
+        id: ${output.login.title}
+    - assertVisible:
+        text: "Welcome Back"
+        
+    # Verify all login form elements are present
     - assertVisible:
         id: ${output.login.emailInput}
     - assertVisible:
         id: ${output.login.passwordInput}
     - assertVisible:
         id: ${output.login.submitButton}
+    - assertVisible:
+        id: ${output.login.signupLink}
+    - assertVisible:
+        id: ${output.login.forgotPasswordLink}
         
-    # Test Case 1: Verify Login Form Initial State
+    # Verify initial form state
     - assertVisible:
         id: ${output.login.submitButton}
-        enabled: false  # Submit should be disabled initially
-
-    # Test Case 2: Verify Input Field Behaviors
+        enabled: false
+        
+    # Test Case 1: Successful Login Flow
     - tapOn:
-        id: ${output.login.emailInput}
-    - assertHasFocus:
         id: ${output.login.emailInput}
     - inputText: ${VALID_EMAIL}
-    - assertVisible:
-        id: ${output.login.emailInput}
-        hasText: ${VALID_EMAIL}
     
+    # Verify button is still disabled with only email filled
+    - assertVisible:
+        id: ${output.login.submitButton}
+        enabled: false
+        
     - tapOn:
         id: ${output.login.passwordInput}
-    - assertHasFocus:
-        id: ${output.login.passwordInput}
     - inputText: ${VALID_PASSWORD}
-    - assertVisible:
-        id: ${output.login.passwordInput}
-        hasText: true
     
-    # Test Case 3: Verify Submit Button Enabled
+    # Verify button is now enabled with both fields filled
     - assertVisible:
         id: ${output.login.submitButton}
         enabled: true
-
-    # Test Case 4: Submit Login
-    - runFlow: login  # Use reusable login flow
         
-    # Test Case 5: Verify Loading and Transition States
+    # Submit the form
+    - tapOn:
+        id: ${output.login.submitButton}
+        
+    # Verify loading state appears
     - assertVisible:
         id: ${output.login.loadingOverlay}
-        timeout: 1000
-    - assertNotVisible:
-        id: ${output.login.errorMessage}
+        
+    # Verify loading overlay has proper accessibility
+    - assertVisible:
+        id: ${output.login.loadingOverlay}
+        accessibilityRole: "progressbar"
+        accessibilityLabel: "Signing you in..."
+        
+    # Wait for authentication to complete
+    - waitForAnimationToEnd
     
-    # Wait for loading and animation
-    - waitForAnimationToEnd:
-        timeout: 2000
-    
-    # Test Case 6: Verify Successful Login State
-    - assertNotVisible:
-        id: ${output.login.screen}
+    # Verify successful navigation to home screen
     - assertVisible:
         id: ${output.home.screen}
-    
-    # Test Case 7: Verify Welcome Message and User Context
     - assertVisible:
         id: ${output.home.title}
-        text: ${output.home.welcomeTitle}
+    - assertVisible:
+        text: "Welcome Home"
+        
+    # Verify loading overlay is no longer visible
+    - assertNotVisible:
+        id: ${output.login.loadingOverlay}
+        
+    # Verify login screen is no longer visible
+    - assertNotVisible:
+        id: ${output.login.screen}
+        
+    # Test Case 2: Verify Home Screen Content
     - assertVisible:
         id: ${output.home.welcomeMessage}
-        contains: ${VALID_EMAIL}
     - assertVisible:
-        id: ${output.home.userAvatar}
+        id: ${output.home.contentContainer}
         
-    # Verify Navigation Elements
+    # Test Case 3: Verify Navigation Tabs are Available
     - assertVisible:
-        text: ${output.navigation.homeTab}
-        isSelected: true
+        id: ${output.navigation.homeTab}
     - assertVisible:
-        text: ${output.navigation.profileTab}
+        id: ${output.navigation.profileTab}
+        
+    # Test Case 4: Navigate to Profile Screen
+    - tapOn:
+        id: ${output.navigation.profileTab}
     - assertVisible:
-        text: ${output.navigation.settingsTab}
+        id: ${output.profile.screen}
+    - assertVisible:
+        id: ${output.profile.header}
+        
+    # Verify profile information is loaded
+    - assertVisible:
+        id: ${output.profile.email}
+        text: ${VALID_EMAIL}
+        
+    # Test Case 5: Verify Profile Screen Elements
+    - assertVisible:
+        id: ${output.profile.displayName}
+    - assertVisible:
+        id: ${output.profile.editButton}
+    - assertVisible:
+        id: ${output.profile.logoutButton}
+        
+    # Test Case 6: Navigate Back to Home
+    - tapOn:
+        id: ${output.navigation.homeTab}
+    - assertVisible:
+        id: ${output.home.screen}
+        
+    # Test Case 7: Verify Session Persistence (App State)
+    - assertVisible:
+        id: ${output.home.welcomeMessage}
+    - assertVisible:
+        text: "Welcome Home"
+        
+    # Test Case 8: Test Logout Flow
+    - tapOn:
+        id: ${output.navigation.profileTab}
+    - assertVisible:
+        id: ${output.profile.screen}
+    - tapOn:
+        id: ${output.profile.logoutButton}
+        
+    # Verify logout confirmation or immediate logout
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.login.screen}
+        
+    # Verify we're back to login screen
+    - assertVisible:
+        id: ${output.login.title}
+    - assertVisible:
+        id: ${output.login.emailInput}
+    - assertVisible:
+        id: ${output.login.passwordInput}
+        
+    # Test Case 9: Verify Form is Reset After Logout
+    - assertVisible:
+        id: ${output.login.submitButton}
+        enabled: false
+        
+    # Test Case 10: Re-login to Verify Flow Works Multiple Times
+    - tapOn:
+        id: ${output.login.emailInput}
+    - inputText: ${VALID_EMAIL}
+    - tapOn:
+        id: ${output.login.passwordInput}
+    - inputText: ${VALID_PASSWORD}
+    - tapOn:
+        id: ${output.login.submitButton}
+    
+    - assertVisible:
+        id: ${output.login.loadingOverlay}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.home.screen}
+        
+    # Test Case 11: Accessibility - Screen Reader Navigation
+    - assertVisible:
+        id: ${output.home.screen}
+        accessibilityRole: "main"
+    - assertVisible:
+        id: ${output.home.title}
+        accessibilityRole: "header"
+        
+    # Test Case 12: Verify Dark Mode Support (if toggle available)
+    - tapOn:
+        id: ${output.navigation.profileTab}
+    - assertVisible:
+        id: ${output.profile.screen}
+    
+    # Check if dark mode toggle exists and test it
+    - runFlow:
+        when:
+          visible:
+            id: ${output.darkMode.toggleButton}
+        commands:
+          - tapOn:
+              id: ${output.darkMode.toggleButton}
+          - assertVisible:
+              id: ${output.darkMode.indicator}
+          - assertVisible:
+              id: ${output.profile.screen}
+              
+    # Test Case 13: Performance - Verify Smooth Transitions
+    - tapOn:
+        id: ${output.navigation.homeTab}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.home.screen}
+    - tapOn:
+        id: ${output.navigation.profileTab}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.profile.screen}
 
 metadata:
   name: "Login - Positive Flow"
-  description: "Tests successful login flow with valid credentials"
+  description: "Tests successful login flow, navigation, session management, logout, accessibility, and user experience features"
   author: "Test Team"
   tags:
     - auth
     - login
-    - positive
-    - smoke
+    - positive-flow
+    - navigation
+    - session-management
+    - accessibility
+    - user-experience
+    - performance

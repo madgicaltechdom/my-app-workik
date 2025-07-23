@@ -15,33 +15,85 @@ flows:
         
     # Verify initial navigation state (should be on login screen)
     - assertVisible:
-        id: ${output.login.container}
+        id: ${output.login.screen}
+    - assertVisible:
+        id: ${output.login.title}
         
-    # Navigate to Signup screen
+    # Test Case 1: Navigate to Signup screen
+    - assertVisible:
+        id: ${output.login.signupLink}
     - tapOn:
         id: ${output.login.signupLink}
     - assertVisible:
-        id: ${output.signup.container}
+        id: ${output.signup.screen}
+    - assertVisible:
+        id: ${output.signup.title}
         
-    # Navigate back to Login
+    # Verify signup form elements are present
+    - assertVisible:
+        id: ${output.signup.emailInput}
+    - assertVisible:
+        id: ${output.signup.passwordInput}
+    - assertVisible:
+        id: ${output.signup.submitButton}
+        
+    # Test Case 2: Navigate back to Login from Signup
+    - assertVisible:
+        id: ${output.signup.loginLink}
     - tapOn:
         id: ${output.signup.loginLink}
     - assertVisible:
-        id: ${output.login.container}
+        id: ${output.login.screen}
+    - assertVisible:
+        id: ${output.login.title}
         
-    # Navigate to Forgot Password
+    # Test Case 3: Navigate to Forgot Password
+    - assertVisible:
+        id: ${output.login.forgotPasswordLink}
     - tapOn:
         id: ${output.login.forgotPasswordLink}
     - assertVisible:
-        id: ${output.forgotPassword.container}
+        id: ${output.forgotPassword.screen}
+    - assertVisible:
+        id: ${output.forgotPassword.title}
         
-    # Navigate back to Login
+    # Verify forgot password form elements
+    - assertVisible:
+        id: ${output.forgotPassword.emailInput}
+    - assertVisible:
+        id: ${output.forgotPassword.submitButton}
+    - assertVisible:
+        id: ${output.forgotPassword.backButton}
+        
+    # Test Case 4: Navigate back to Login from Forgot Password
     - tapOn:
         id: ${output.forgotPassword.backButton}
     - assertVisible:
-        id: ${output.login.container}
+        id: ${output.login.screen}
+    - assertVisible:
+        id: ${output.login.title}
         
-    # Login successfully and verify navigation to Home
+    # Test Case 5: Test Forgot Password Flow
+    - tapOn:
+        id: ${output.login.forgotPasswordLink}
+    - assertVisible:
+        id: ${output.forgotPassword.screen}
+    - tapOn:
+        id: ${output.forgotPassword.emailInput}
+    - inputText: ${VALID_EMAIL}
+    - tapOn:
+        id: ${output.forgotPassword.submitButton}
+    
+    # Verify loading state
+    - assertVisible:
+        id: ${output.forgotPassword.loadingOverlay}
+    - waitForAnimationToEnd
+    
+    # Should show success message or navigate back to login
+    - assertVisible:
+        id: ${output.login.screen}
+        
+    # Test Case 6: Login successfully and verify navigation to Home
     - tapOn:
         id: ${output.login.emailInput}
     - inputText: ${VALID_EMAIL}
@@ -50,28 +102,121 @@ flows:
     - inputText: ${VALID_PASSWORD}
     - tapOn:
         id: ${output.login.submitButton}
+    
+    # Verify loading and successful navigation
     - assertVisible:
-        id: ${output.home.container}
+        id: ${output.login.loadingOverlay}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.home.screen}
         
-    # Verify tab navigation after login
+    # Test Case 7: Verify tab navigation after login
+    - assertVisible:
+        id: ${output.navigation.homeTab}
+    - assertVisible:
+        id: ${output.navigation.profileTab}
+        
+    # Navigate to Profile
     - tapOn:
         id: ${output.navigation.profileTab}
     - assertVisible:
-        id: ${output.profile.container}
-    - tapOn:
-        id: ${output.navigation.settingsTab}
+        id: ${output.profile.screen}
     - assertVisible:
-        id: ${output.settings.container}
+        id: ${output.profile.header}
+        
+    # Verify profile content is loaded
+    - assertVisible:
+        id: ${output.profile.email}
+        text: ${VALID_EMAIL}
+    - assertVisible:
+        id: ${output.profile.logoutButton}
+        
+    # Test Case 8: Navigate back to Home
     - tapOn:
         id: ${output.navigation.homeTab}
     - assertVisible:
-        id: ${output.home.container}
+        id: ${output.home.screen}
+    - assertVisible:
+        id: ${output.home.title}
+        
+    # Test Case 9: Test Settings navigation (if available)
+    - runFlow:
+        when:
+          visible:
+            id: ${output.navigation.settingsTab}
+        commands:
+          - tapOn:
+              id: ${output.navigation.settingsTab}
+          - assertVisible:
+              id: settings-screen
+          - tapOn:
+              id: ${output.navigation.homeTab}
+          - assertVisible:
+              id: ${output.home.screen}
+              
+    # Test Case 10: Test Deep Navigation - Profile to Logout to Login
+    - tapOn:
+        id: ${output.navigation.profileTab}
+    - assertVisible:
+        id: ${output.profile.screen}
+    - tapOn:
+        id: ${output.profile.logoutButton}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.login.screen}
+        
+    # Test Case 11: Verify Navigation State Reset After Logout
+    - assertVisible:
+        id: ${output.login.title}
+    - assertVisible:
+        id: ${output.login.emailInput}
+    - assertVisible:
+        id: ${output.login.passwordInput}
+    - assertVisible:
+        id: ${output.login.submitButton}
+        enabled: false
+        
+    # Test Case 12: Test Navigation Accessibility
+    - assertVisible:
+        id: ${output.login.signupLink}
+        accessibilityRole: "link"
+        accessibilityLabel: "Go to sign up"
+    - assertVisible:
+        id: ${output.login.forgotPasswordLink}
+        accessibilityRole: "link"
+        accessibilityLabel: "Reset your password"
+        
+    # Test Case 13: Test Navigation Performance
+    - tapOn:
+        id: ${output.login.signupLink}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.signup.screen}
+    - tapOn:
+        id: ${output.signup.loginLink}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.login.screen}
+    - tapOn:
+        id: ${output.login.forgotPasswordLink}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.forgotPassword.screen}
+    - tapOn:
+        id: ${output.forgotPassword.backButton}
+    - waitForAnimationToEnd
+    - assertVisible:
+        id: ${output.login.screen}
 
 metadata:
-  name: "Auth Navigation Flow"
-  description: "Tests navigation between auth screens and post-login navigation"
+  name: "Navigation Flow"
+  description: "Tests navigation between authentication screens, tab navigation after login, logout flow, accessibility, and performance of navigation transitions"
   author: "Test Team"
   tags:
-    - auth
     - navigation
-    - integration
+    - auth
+    - user-flow
+    - accessibility
+    - performance
+    - tab-navigation
+    - deep-linking

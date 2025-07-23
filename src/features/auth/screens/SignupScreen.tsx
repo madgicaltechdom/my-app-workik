@@ -9,11 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useFirebaseAuth } from '../../../hooks/useFirebaseAuth';
 import { authService } from '../../../services/authService';
-import Input from '../../../components/common/Input';
-import Button from '../../../components/common/Button';
-import ErrorMessage from '../../../components/common/ErrorMessage';
+import { Input, Button, ErrorMessage } from '../../../components/common';
 import { styles } from './SignupScreen.styles';
-import theme from '../../../theme/theme';
 import { validateEmail, validatePassword, sanitizeInput } from '../../../utils/validation';
 
 type SignupScreenProps = {

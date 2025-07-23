@@ -1,170 +1,389 @@
-import React, { useReducer, useCallback } from 'react';
-import { KeyboardAvoidingView, Platform, useWindowDimensions, TouchableOpacity, useColorScheme, View } from 'react-native';
-import { useTheme } from 'styled-components/native';
+import React, { useReducer, useCallback, useMemo } from 'react';
 import {
-  Container,
-  Title,
-  StyledInput,
-  StyledErrorMessage,
-  StyledButton,
-  Footer,
-  FooterText,
-  FooterLink,
-} from './LoginScreen.styles';
-import { authService } from '../../../services/authService';
-import { useTranslation } from '../../../localization';
+  View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  useWindowDimensions,
+  TouchableOpacity,
+  useColorScheme,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import type { StackNavigationProp } from '@react-navigation/stack';
-import { validateEmail, sanitizeInput } from '../../../utils/validation';
+
+import { Input, Button, ErrorMessage, LoadingOverlay } from '@/components/common';
+import { authService } from '@/services/authService';
+import { validateEmail, validateRequired, sanitizeInput } from '@/utils/validation';
+import { AuthStackParamList } from '@/types';
 
 interface LoginState {
   email: string;
   password: string;
   isLoading: boolean;
-  error: string;
+  errorMessage: string;
+  hasAttemptedSubmit: boolean;
 }
 
 type LoginAction =
   | { type: 'SET_EMAIL'; payload: string }
   | { type: 'SET_PASSWORD'; payload: string }
   | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string };
+  | { type: 'SET_ERROR'; payload: string }
+  | { type: 'CLEAR_ERROR' }
+  | { type: 'SET_ATTEMPTED_SUBMIT'; payload: boolean };
 
 function loginReducer(state: LoginState, action: LoginAction): LoginState {
   switch (action.type) {
     case 'SET_EMAIL':
-      return { ...state, email: action.payload };
+      return {
+        ...state,
+        email: action.payload,
+        errorMessage: state.hasAttemptedSubmit ? '' : state.errorMessage,
+      };
     case 'SET_PASSWORD':
-      return { ...state, password: action.payload };
+      return {
+        ...state,
+        password: action.payload,
+        errorMessage: state.hasAttemptedSubmit ? '' : state.errorMessage,
+      };
     case 'SET_LOADING':
-      return { ...state, isLoading: action.payload };
+      return {
+        ...state,
+        isLoading: action.payload,
+      };
     case 'SET_ERROR':
-      return { ...state, error: action.payload };
+      return {
+        ...state,
+        errorMessage: action.payload,
+        isLoading: false,
+      };
+    case 'CLEAR_ERROR':
+      return {
+        ...state,
+        errorMessage: '',
+      };
+    case 'SET_ATTEMPTED_SUBMIT':
+      return {
+        ...state,
+        hasAttemptedSubmit: action.payload,
+      };
     default:
       return state;
   }
 }
 
-
-type AuthStackParamList = {
-  Login: undefined;
-  Signup: undefined;
-};
-
 interface LoginScreenProps {
-  readonly navigation: StackNavigationProp<AuthStackParamList, 'Login'>;
+  navigation: StackNavigationProp<AuthStackParamList, 'Login'>;
 }
 
-export function LoginScreen({ navigation }: LoginScreenProps) {
+function LoginScreen({ navigation }: LoginScreenProps) {
   const { t } = useTranslation();
-  const [{ email, password, isLoading, error }, dispatch] = useReducer(loginReducer, {
+  const { width } = useWindowDimensions();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  const [state, dispatch] = useReducer(loginReducer, {
     email: '',
     password: '',
     isLoading: false,
-    error: '',
+    errorMessage: '',
+    hasAttemptedSubmit: false,
   });
-  const { width } = useWindowDimensions();
-  const colorScheme = useColorScheme();
-  useTheme();
+
+  const containerStyles = useMemo(() => [
+    styles.container,
+    isDark && styles.darkContainer,
+  ], [isDark]);
+
+  const contentStyles = useMemo(() => [
+    styles.content,
+    { maxWidth: Math.min(width * 0.9, 400) },
+  ], [width]);
+
+  const titleStyles = useMemo(() => [
+    styles.title,
+    isDark && styles.darkTitle,
+  ], [isDark]);
+
+  const footerTextStyles = useMemo(() => [
+    styles.footerText,
+    isDark && styles.darkFooterText,
+  ], [isDark]);
+
+  const footerLinkStyles = useMemo(() => [
+    styles.footerLink,
+    isDark && styles.darkFooterLink,
+  ], [isDark]);
+
+  const handleEmailChange = useCallback((email: string) => {
+    const sanitizedEmail = sanitizeInput(email);
+    dispatch({ type: 'SET_EMAIL', payload: sanitizedEmail });
+  }, []);
+
+  const handlePasswordChange = useCallback((password: string) => {
+    dispatch({ type: 'SET_PASSWORD', payload: password });
+  }, []);
+
+  const validateForm = useCallback(() => {
+    const emailValidation = validateEmail(state.email);
+    if (!emailValidation.isValid) {
+      dispatch({ type: 'SET_ERROR', payload: emailValidation.errorMessage || '' });
+      return false;
+    }
+
+    const passwordValidation = validateRequired(state.password, 'Password');
+    if (!passwordValidation.isValid) {
+      dispatch({ type: 'SET_ERROR', payload: passwordValidation.errorMessage || '' });
+      return false;
+    }
+
+    return true;
+  }, [state.email, state.password]);
 
   const handleLogin = useCallback(async () => {
-    dispatch({ type: 'SET_ERROR', payload: '' });
-    const sanitizedEmail = sanitizeInput(email);
-    const sanitizedPassword = sanitizeInput(password);
-    if (!sanitizedEmail || !sanitizedPassword) {
-      dispatch({ type: 'SET_ERROR', payload: t('login.bothRequired') });
+    dispatch({ type: 'SET_ATTEMPTED_SUBMIT', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+
+    if (!validateForm()) {
       return;
     }
-    if (!validateEmail(sanitizedEmail)) {
-      dispatch({ type: 'SET_ERROR', payload: t('login.invalidEmail') });
-      return;
-    }
-    // Optionally: Add password validation here if you want to enforce rules
+
     dispatch({ type: 'SET_LOADING', payload: true });
+
     try {
-      await authService.login(sanitizedEmail, sanitizedPassword);
-      // Navigation handled by auth observer
-    } catch (err: any) {
-      switch (err.code) {
+      await authService.login(state.email, state.password);
+      // Navigation will be handled by auth state observer
+    } catch (error: any) {
+      let errorMessage = t('auth.errors.loginFailed', { 
+        defaultValue: 'Login failed. Please try again.' 
+      });
+
+      switch (error.code) {
         case 'auth/invalid-email':
-          dispatch({ type: 'SET_ERROR', payload: t('login.invalidEmail') });
+          errorMessage = t('auth.errors.invalidEmail', { 
+            defaultValue: 'Please enter a valid email address.' 
+          });
           break;
         case 'auth/user-not-found':
-          dispatch({ type: 'SET_ERROR', payload: t('login.userNotFound') });
+          errorMessage = t('auth.errors.userNotFound', { 
+            defaultValue: 'No account found with this email address.' 
+          });
           break;
         case 'auth/wrong-password':
-          dispatch({ type: 'SET_ERROR', payload: t('login.wrongPassword') });
+          errorMessage = t('auth.errors.wrongPassword', { 
+            defaultValue: 'Incorrect password. Please try again.' 
+          });
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = t('auth.errors.tooManyRequests', { 
+            defaultValue: 'Too many failed attempts. Please try again later.' 
+          });
+          break;
+        case 'auth/user-disabled':
+          errorMessage = t('auth.errors.userDisabled', { 
+            defaultValue: 'This account has been disabled.' 
+          });
           break;
         default:
-          dispatch({ type: 'SET_ERROR', payload: t('login.loginFailed') });
+          errorMessage = error.message || errorMessage;
       }
+
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [email, password]);
+  }, [state.email, state.password, validateForm, t]);
+
+  const handleNavigateToSignup = useCallback(() => {
+    navigation.navigate('Signup');
+  }, [navigation]);
+
+  const handleNavigateToForgotPassword = useCallback(() => {
+    navigation.navigate('ForgotPassword');
+  }, [navigation]);
+
+  const isFormValid = useMemo(() => {
+    return state.email.trim() !== '' && state.password.trim() !== '';
+  }, [state.email, state.password]);
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      testID="login-screen"
-    >
-      <Container $width={width} $colorScheme={colorScheme}>
-        <Title 
-          accessibilityRole="header" 
-          accessibilityLabel={t('login.loginScreenTitle')}
-          testID="login-title">
-          {t('login.title')}
-        </Title>
-        <View testID="email-input-container">
-          <StyledInput
-            placeholder={t('login.emailPlaceholder')}
-            value={email}
-            onChangeText={text => dispatch({ type: 'SET_EMAIL', payload: text })}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            accessible
-            accessibilityLabel={t('login.emailPlaceholder')}
-            error={error}
-            testID="email-input"
-          />
+    <SafeAreaView style={containerStyles} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={contentStyles}>
+          <View style={styles.header}>
+            <Text
+              style={titleStyles}
+              accessibilityRole="header"
+              accessibilityLabel={t('auth.loginScreenTitle', { defaultValue: 'Login Screen' })}
+              testID="login-title"
+            >
+              {t('auth.welcomeBack', { defaultValue: 'Welcome Back' })}
+            </Text>
+          </View>
+
+          <View style={styles.form}>
+            <Input
+              label={t('auth.email', { defaultValue: 'Email' })}
+              placeholder={t('auth.emailPlaceholder', { defaultValue: 'Enter your email' })}
+              value={state.email}
+              onChangeText={handleEmailChange}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              textContentType="emailAddress"
+              isDisabled={state.isLoading}
+              accessibilityLabel={t('auth.emailInput', { defaultValue: 'Email input' })}
+              testID="login-email-input"
+            />
+
+            <Input
+              label={t('auth.password', { defaultValue: 'Password' })}
+              placeholder={t('auth.passwordPlaceholder', { defaultValue: 'Enter your password' })}
+              value={state.password}
+              onChangeText={handlePasswordChange}
+              secureTextEntry
+              autoComplete="password"
+              textContentType="password"
+              isDisabled={state.isLoading}
+              accessibilityLabel={t('auth.passwordInput', { defaultValue: 'Password input' })}
+              testID="login-password-input"
+            />
+
+            <ErrorMessage
+              message={state.errorMessage}
+              isVisible={Boolean(state.errorMessage)}
+              testID="login-error-message"
+            />
+
+            <Button
+              title={t('auth.loginButton', { defaultValue: 'Login' })}
+              onPress={handleLogin}
+              isLoading={state.isLoading}
+              isDisabled={state.isLoading || !isFormValid}
+              accessibilityLabel={t('auth.loginButtonLabel', { defaultValue: 'Login to your account' })}
+              testID="login-submit-button"
+            />
+
+            <TouchableOpacity
+              onPress={handleNavigateToForgotPassword}
+              style={styles.forgotPasswordButton}
+              accessibilityRole="button"
+              accessibilityLabel={t('auth.forgotPasswordLabel', { defaultValue: 'Forgot password' })}
+              testID="forgot-password-link"
+            >
+              <Text style={footerLinkStyles}>
+                {t('auth.forgotPassword', { defaultValue: 'Forgot Password?' })}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={footerTextStyles}>
+              {t('auth.noAccount', { defaultValue: "Don't have an account?" })}
+            </Text>
+            <TouchableOpacity
+              onPress={handleNavigateToSignup}
+              accessibilityRole="button"
+              accessibilityLabel={t('auth.goToSignup', { defaultValue: 'Go to sign up' })}
+              testID="signup-link"
+            >
+              <Text style={footerLinkStyles}>
+                {t('auth.signUp', { defaultValue: 'Sign Up' })}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View testID="password-input-container">
-          <StyledInput
-            placeholder={t('login.passwordPlaceholder')}
-            value={password}
-            onChangeText={text => dispatch({ type: 'SET_PASSWORD', payload: text })}
-            secureTextEntry
-            accessible
-            accessibilityLabel={t('login.passwordPlaceholder')}
-            error={error}
-            testID="password-input"
-          />
-        </View>
-        <StyledErrorMessage message={error} testID="login-error-message" />
-        <StyledButton
-          title={t('login.loginButton')}
-          onPress={handleLogin}
-          loading={isLoading}
-          disabled={isLoading}
-          textStyle={{ fontWeight: 'bold' }}
-          testID="login-button"
-        />
-        <Footer>
-          <FooterText>{t('login.signupPrompt')}</FooterText>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Signup')}
-            accessibilityRole="button"
-            accessibilityLabel={t('login.goToSignup')}
-            testID="login-signup-link"
-          >
-            <FooterLink>{t('login.signupLink')}</FooterLink>
-          </TouchableOpacity>
-        </Footer>
-      </Container>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+
+      <LoadingOverlay
+        isVisible={state.isLoading}
+        message={t('auth.loggingIn', { defaultValue: 'Logging in...' })}
+        variant="modal"
+        testID="login-loading-overlay"
+      />
+    </SafeAreaView>
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
 
+  darkContainer: {
+    backgroundColor: '#000000',
+  },
 
-export default LoginScreen;
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    alignSelf: 'center',
+    width: '100%',
+    justifyContent: 'center',
+  },
+
+  header: {
+    marginBottom: 32,
+    alignItems: 'center',
+  },
+
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1C1C1E',
+    textAlign: 'center',
+  },
+
+  darkTitle: {
+    color: '#FFFFFF',
+  },
+
+  form: {
+    marginBottom: 32,
+  },
+
+  forgotPasswordButton: {
+    alignSelf: 'center',
+    marginTop: 16,
+    paddingVertical: 8,
+  },
+
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  footerText: {
+    fontSize: 16,
+    color: '#8E8E93',
+  },
+
+  darkFooterText: {
+    color: '#8E8E93',
+  },
+
+  footerLink: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+
+  darkFooterLink: {
+    color: '#0A84FF',
+  },
+});
+
+export { LoginScreen };
