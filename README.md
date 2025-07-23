@@ -1,6 +1,8 @@
 # StorageApp
 
-A React Native application for user authentication, profile management, and settings, built with Firebase and robust form validation. The project uses modern best practices, including TypeScript, modular architecture, styled-components, and end-to-end testing with Maestro.
+A modern React Native application for user authentication, profile management, and settings, built with Firebase and comprehensive form validation. The project showcases enterprise-grade best practices including TypeScript, modular architecture, styled-components, offline support, and comprehensive end-to-end testing with Maestro.
+
+> **Latest Updates**: Complete Profile UI modernization with Firebase Firestore integration, comprehensive i18n support, offline caching, and enhanced Maestro test coverage.
 
 ## Overview
 
@@ -47,14 +49,44 @@ src/components/common/ComponentName/
 - **Accessibility Testing**: Tests verify ARIA compliance and screen reader support
 
 ## Features
-- **Authentication:** Email/password login, signup, and password reset with enhanced validation
-- **Profile:** View and edit user profile details with real-time validation
-- **Settings:** Manage app preferences with dark mode support
-- **Localization:** Multi-language support with react-i18next
-- **Validation:** Shared, robust validation utilities with input sanitization
-- **Testing:** Comprehensive end-to-end UI tests with Maestro
-- **Accessibility:** Full ARIA compliance and screen reader support
-- **Dark Mode:** System-wide dark mode with automatic theme switching
+
+### 🔐 **Authentication System**
+- Email/password login with enhanced validation and error handling
+- User registration with comprehensive form validation
+- Password reset functionality with Firebase Auth integration
+- Persistent authentication using AsyncStorage
+- Secure token management and automatic session refresh
+
+### 👤 **Profile Management** *(Recently Enhanced)*
+- **Modern Profile UI**: Completely redesigned with contemporary styling
+- **Firebase Firestore Integration**: Custom profile fields (bio, phone, date of birth)
+- **Real-time Data Sync**: Seamless merging of Firebase Auth and Firestore data
+- **Offline Support**: Comprehensive caching with AsyncStorage fallback
+- **Form Validation**: Real-time validation with user-friendly error messages
+- **i18n Support**: Fully internationalized with proper translation keys
+
+### ⚙️ **Settings & Preferences**
+- App preferences management with scrollable interface
+- Dark mode support with automatic theme switching
+- User preference persistence
+
+### 🌐 **Internationalization**
+- Multi-language support with react-i18next
+- Structured translation files with feature-based organization
+- Dynamic language switching
+
+### 🧪 **Testing & Quality Assurance**
+- **Comprehensive Maestro Tests**: Full profile editing flow coverage
+- **Accessibility Testing**: ARIA compliance and screen reader support
+- **Error Handling Tests**: Validation and edge case coverage
+- **Performance Testing**: Loading states and offline scenarios
+
+### ♿ **Accessibility & UX**
+- Full ARIA compliance with proper roles and labels
+- Keyboard navigation support
+- Screen reader compatibility
+- Loading states and user feedback
+- Responsive design patterns
 
 ## Project Structure
 
@@ -85,7 +117,8 @@ my-app/
 │   └── utils/                       # Validation utilities and helpers
 ├── .maestro/                        # Maestro E2E test flows and element selectors
 │   ├── elements/auth.js            # Page Object Model for test elements
-│   └── tests/auth/                 # Authentication flow tests
+│   ├── tests/auth/                 # Authentication flow tests
+│   └── tests/profile/              # Profile editing and management tests
 ├── assets/                          # Images and static assets
 ├── App.tsx                         # App entry point (TypeScript)
 ├── tsconfig.json                   # TypeScript configuration
@@ -134,56 +167,104 @@ my-app/
 1. **Start an Android emulator or iOS simulator.**
 2. **Run Maestro tests:**
    ```sh
+   # Authentication Tests
    maestro test .maestro/tests/auth/login_positive.yaml
    maestro test .maestro/tests/auth/login_validation.yaml
    maestro test .maestro/tests/auth/forgot_password.yaml
+   
+   # Profile Management Tests (Recently Added)
+   maestro test .maestro/tests/profile/edit_profile.yaml
    ```
-   Or run all tests in the `.maestro/tests/auth/` directory.
+   Or run all tests in the `.maestro/tests/` directory.
 
-- **Test Coverage:**
-  - Login validation and error handling
-  - Forgot password flow
-  - Navigation between screens
-  - Form state management
-  - Accessibility compliance
-  - Loading states and error recovery
+- **Comprehensive Test Coverage:**
+  - **Authentication Flow**: Login, signup, password reset with validation
+  - **Profile Management**: Complete profile editing with all fields
+  - **Data Persistence**: Verify profile data saves and loads correctly
+  - **Error Handling**: Invalid input validation and error recovery
+  - **Accessibility**: ARIA compliance and screen reader support
+  - **Loading States**: Async operations and user feedback
+  - **Navigation**: Screen transitions and back navigation
+  - **Offline Support**: Cached data fallback scenarios
 
 ## Development Guidelines
 
-### 🎯 **TypeScript Best Practices**
-- Use strict TypeScript configuration
-- Define interfaces for all component props
-- Leverage type inference where appropriate
-- Use named exports consistently
+> **📋 Comprehensive Guidelines Available**: See [`DEVELOPMENT_GUIDELINES.md`](./DEVELOPMENT_GUIDELINES.md) for detailed best practices, patterns, and team standards based on this project's learnings.
 
-### 🎨 **Styling Guidelines**
-- **Reusable Components**: Use `styled-components/native` with theme props
-- **Screen Components**: Use React Native `StyleSheet` for performance
-- **Theme Usage**: Always use theme tokens instead of hardcoded values
-- **Responsive Design**: Use `useWindowDimensions` for screen size adaptation
+### 🎯 **Quick Reference - Key Principles**
 
-### ♿ **Accessibility Requirements**
-- Include `accessibilityRole`, `accessibilityLabel`, and `accessibilityHint`
-- Use `accessibilityLiveRegion` for dynamic content
-- Ensure proper keyboard navigation
-- Test with screen readers
+#### **React Native Styling (Critical)**
+```typescript
+// ❌ WRONG - Causes runtime errors
+const StyledView = styled.View`
+  padding: 16px;           // px units not supported
+  margin: 0 auto;          // CSS shorthand not supported
+`;
 
-### 🧪 **Testing Standards**
+// ✅ CORRECT - Use specific properties
+const StyledView = styled.View`
+  padding-horizontal: 16;
+  padding-vertical: 16;
+  align-self: center;
+`;
+```
+
+#### **Firebase Integration**
+```typescript
+// ✅ CRITICAL: Import Firebase config FIRST
+import './src/services/firebaseConfig'; // Must be first!
+import { UserProvider } from './src/contexts/UserContext';
+```
+
+#### **Theme Integration**
+```typescript
+// ✅ Always verify theme properties exist
+background-color: ${({ theme }) => theme.colors.primary}; // Valid
+font-size: ${({ theme }) => theme.fontSizes.md};          // Valid
+
+// ❌ These cause "Empty input string" errors
+background-color: ${({ theme }) => theme.colors.surface}; // Doesn't exist
+font-size: ${({ theme }) => theme.fontSizes.xxl};        // Doesn't exist
+```
+
+#### **Testing & Accessibility**
 - Include `testID` props for all interactive elements
-- Follow the Page Object Model pattern in Maestro tests
-- Test both positive and negative user flows
-- Verify accessibility features in tests
+- Use consistent naming: `input-{fieldName}`, `{action}-button`
+- Add accessibility labels and roles
+- Follow Page Object Model pattern in Maestro tests
 
 ## Technologies Used
-- **React Native** (with TypeScript)
-- **Expo** (managed workflow)
-- **Firebase** (Auth, Firestore)
-- **AsyncStorage** (persistent auth)
-- **styled-components/native** (theming and component styling)
-- **React Navigation** (typed navigation)
-- **react-i18next** (internationalization)
-- **Maestro** (end-to-end UI testing)
-- **React Native Safe Area Context** (safe area management)
+
+### **Core Technologies**
+- **React Native** (with TypeScript) - Cross-platform mobile development
+- **Expo** (managed workflow) - Development platform and toolchain
+- **TypeScript** - Type safety and enhanced developer experience
+
+### **Backend & Data**
+- **Firebase Authentication** - User authentication and session management
+- **Firebase Firestore** - NoSQL database for custom profile data
+- **AsyncStorage** - Local storage for caching and offline support
+
+### **UI & Styling**
+- **styled-components/native** - Component styling with theme integration
+- **React Navigation** (v6) - Typed navigation with smooth transitions
+- **React Native Safe Area Context** - Safe area management
+- **Custom Theme System** - Modular theme with dark mode support
+
+### **Internationalization & Accessibility**
+- **react-i18next** - Comprehensive internationalization support
+- **ARIA Compliance** - Full accessibility with screen reader support
+- **Keyboard Navigation** - Complete keyboard accessibility
+
+### **Testing & Quality**
+- **Maestro** - End-to-end UI testing with comprehensive coverage
+- **Page Object Model** - Structured test organization
+- **Accessibility Testing** - Automated ARIA compliance verification
+
+### **Development Tools**
+- **ESLint & Prettier** - Code formatting and linting
+- **Metro** - JavaScript bundler for React Native
+- **Flipper** - Debugging and development tools
 
 ## Refactoring Prompt for AI Assistants
 
