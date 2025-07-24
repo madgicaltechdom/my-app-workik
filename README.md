@@ -31,10 +31,10 @@ A modern React Native application for user authentication, profile management, a
   - [E2E Tests with Maestro](#e2e-tests-with-maestro)
   - [Test Coverage](#test-coverage)
 - [🛠 Feature Development Guide](#-feature-development-guide)
+  - [🎯 Feature Implementation Template](#-feature-implementation-template)
   - [Component Development](#component-development)
   - [State Management](#state-management)
   - [Testing Guidelines](#testing-guidelines)
-  - [Feature Template](#feature-template)
 - [🤝 Contributing](#-contributing)
 - [🐛 Troubleshooting](#-troubleshooting)
 - [🚀 Deployment](#-deployment)
@@ -112,6 +112,63 @@ npm test -- --coverage
 ```
 
 ## 🛠 Feature Development Guide
+
+### 🎯 Feature Implementation Template
+
+Use this template when implementing new features to maintain consistency with the project's architecture and best practices:
+
+```markdown
+# [Feature Name] Implementation
+
+## Project Context
+[Briefly describe the feature and its purpose]
+
+## Feature Requirements
+1. Core functionality:
+   - [List main functionality points]
+   - [Include user stories if applicable]
+
+2. Key screens:
+   - [List all screens needed]
+
+3. Data model:
+   - [Describe the data structure]
+   - [Include Firestore schema if applicable]
+
+## Implementation Details
+
+### File Structure
+```
+src/features/[feature-name]/
+  ├── components/     # Reusable UI components
+  ├── screens/        # Screen components
+  ├── hooks/          # Custom hooks
+  ├── services/       # API/services
+  ├── types/          # TypeScript types
+  ├── __tests__/      # Unit/Integration tests
+  └── index.ts        # Public API exports
+```
+
+### Theme Integration
+```typescript
+// Use these theme properties:
+const styles = styled.View`
+  background-color: ${({ theme }) => theme.colors.background};
+  padding-horizontal: ${({ theme }) => theme.spacing.md};
+  padding-vertical: ${({ theme }) => theme.spacing.sm};
+`;
+```
+
+### Testing Requirements
+1. **Unit Tests**: Test components, hooks, and utilities
+2. **Integration Tests**: Test component interactions
+3. **E2E Tests**: Add Maestro test flows
+
+### Example Implementation
+For reference, see these features:
+- `src/features/auth/` - Authentication flows
+- `src/features/profile/` - User profile management
+```
 
 ### Component Development
 
