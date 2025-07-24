@@ -233,6 +233,132 @@ font-size: ${({ theme }) => theme.fontSizes.xxl};        // Doesn't exist
 - Add accessibility labels and roles
 - Follow Page Object Model pattern in Maestro tests
 
+## 🛠 Feature Development Guide
+
+Use the following prompt template when implementing new features to maintain consistency with the project's architecture and best practices:
+
+```markdown
+# [Feature Name] Implementation Request
+
+## Project Context
+[Briefly describe the feature and its purpose]
+
+## Feature Requirements
+1. Core functionality:
+   - [List main functionality points]
+   - [Include user stories if applicable]
+
+2. Key screens:
+   - [List all screens needed]
+
+3. Data model:
+   - [Describe the data structure]
+   - [Include Firestore schema if applicable]
+
+## Technical Implementation
+
+### File Structure
+```
+src/features/[feature-name]/
+  ├── components/     # Reusable UI components
+  ├── screens/        # Screen components
+  ├── hooks/          # Custom hooks
+  ├── contexts/       # Context providers
+  ├── services/       # API/services
+  ├── types/          # TypeScript types
+  ├── __tests__/      # Unit/Integration tests
+  └── index.ts        # Public API exports
+```
+
+### Required Components
+- [List components to be created]
+- [Include brief description of each]
+
+### State Management
+- [Describe state management approach]
+- [List required context/reducers]
+
+### API Integration
+- [List required API endpoints]
+- [Describe data fetching strategy]
+
+## Maestro E2E Test Requirements
+
+### Test Files
+Create these in `.maestro/tests/[feature-name]/`:
+1. `[feature-name]_create_flow.yaml`
+2. `[feature-name]_read_flow.yaml`
+3. `[feature-name]_update_flow.yaml`
+4. `[feature-name]_delete_flow.yaml`
+5. `[feature-name]_error_handling.yaml`
+
+### Test Guidelines
+1. **Test Data**:
+   - Use environment variables for test credentials
+   - Clean up test data after tests
+   - Use unique identifiers for test data
+
+2. **Test Cases**:
+   - Happy paths for all CRUD operations
+   - Error cases and edge cases
+   - Offline behavior
+   - Navigation flows
+
+3. **Best Practices**:
+   - Use `testID` for element selection
+   - Add assertions for all important states
+   - Include accessibility testing
+   - Test on multiple screen sizes
+
+### Example Test Structure
+```yaml
+# .maestro/tests/feature/create_flow.yaml
+appId: com.yourapp
+---
+- clearState
+- launchApp
+- tapOn: "TabBarItem-Feature"
+- assertVisible: "Feature List"
+- tapOn: "createButton"
+- inputText: "Test Item" # Use testID: input-item-name
+- tapOn: "saveButton"
+- assertVisible: "Item created successfully"
+- assertVisible: "Test Item"
+```
+
+## Deliverables
+- [ ] All TypeScript files with proper typing
+- [ ] Unit and integration tests (80%+ coverage)
+- [ ] Maestro E2E test flows
+- [ ] Documentation updates
+- [ ] i18n support for all user-facing text
+- [ ] Dark/light theme support
+- [ ] Accessibility implementation
+
+## Example Implementation
+For reference, see these existing features:
+- Profile Management: `src/features/profile/`
+- Authentication: `src/features/auth/`
+- Settings: `src/features/settings/`
+
+## Running Maestro Tests for New Features
+
+1. **Add test files** to `.maestro/tests/[feature-name]/`
+2. **Run specific test flow**:
+   ```bash
+   maestro test .maestro/tests/feature/create_flow.yaml
+   ```
+3. **Run all feature tests**:
+   ```bash
+   maestro test .maestro/tests/feature/
+   ```
+4. **Generate test reports**:
+   ```bash
+   maestro test --format junit .maestro/tests/feature/ > test-results.xml
+   ```
+
+For more details, refer to the [Maestro documentation](https://maestro.mobile.dev/).
+
 ## Technologies Used
 
 ### **Core Technologies**
