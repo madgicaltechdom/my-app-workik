@@ -37,7 +37,6 @@ class UserProfileService {
         timestamp: Date.now(),
       };
       await AsyncStorage.setItem(`${this.CACHE_PREFIX}${uid}`, JSON.stringify(cacheData));
-      console.log('[UserProfileService] Profile cached locally for user:', uid);
     } catch (error) {
       console.warn('[UserProfileService] Failed to cache profile:', error);
     }
@@ -55,12 +54,10 @@ class UserProfileService {
       const isExpired = Date.now() - timestamp > this.CACHE_EXPIRY_MS;
 
       if (isExpired) {
-        console.log('[UserProfileService] Cached profile expired for user:', uid);
         await AsyncStorage.removeItem(`${this.CACHE_PREFIX}${uid}`);
         return null;
       }
 
-      console.log('[UserProfileService] Using cached profile for user:', uid);
       return data;
     } catch (error) {
       console.warn('[UserProfileService] Failed to get cached profile:', error);
@@ -89,7 +86,6 @@ class UserProfileService {
         }
 
         const delay = this.RETRY_DELAY_MS * Math.pow(2, i);
-        console.log(`[UserProfileService] Retry attempt ${i + 1}/${attempts} in ${delay}ms`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
@@ -101,13 +97,6 @@ class UserProfileService {
    */
   async saveUserProfile(uid: string, profileData: Partial<UserProfileData>): Promise<ApiResponse<void>> {
     try {
-      console.log('[UserProfileService] ===== SAVE OPERATION START =====');
-      console.log('[UserProfileService] Saving profile for user:', uid);
-      console.log('[UserProfileService] Input profile data:', JSON.stringify(profileData, null, 2));
-      console.log('[UserProfileService] Target collection:', this.COLLECTION_NAME);
-      console.log('[UserProfileService] Target document path:', `${this.COLLECTION_NAME}/${uid}`);
-      
-      // Filter out undefined values
       const cleanedData = Object.entries(profileData).reduce((acc, [key, value]) => {
         if (value !== undefined) {
           acc[key] = value;
@@ -115,57 +104,35 @@ class UserProfileService {
         return acc;
       }, {} as Record<string, any>);
 
-      console.log('[UserProfileService] Cleaned data (undefined removed):', JSON.stringify(cleanedData, null, 2));
-
       if (Object.keys(cleanedData).length === 0) {
-        console.log('[UserProfileService] No data to save - all fields were undefined');
         return {
           success: true,
           message: 'No data to save',
         };
       }
 
-      // Add timestamp
       const dataToSave = {
         ...cleanedData,
         uid,
         updatedAt: new Date().toISOString(),
       };
 
-      console.log('[UserProfileService] Final data to save:', JSON.stringify(dataToSave, null, 2));
-
-      // Try to save to Firestore with retry logic
       try {
         await this.retryOperation(async () => {
           const userDocRef = doc(db, this.COLLECTION_NAME, uid);
-          console.log('[UserProfileService] Created document reference:', userDocRef.path);
-          console.log('[UserProfileService] Document ID:', userDocRef.id);
-          console.log('[UserProfileService] Collection ID:', userDocRef.parent.id);
-          
-          console.log('[UserProfileService] About to call setDoc with merge: true');
           await setDoc(userDocRef, dataToSave, { merge: true });
-          console.log('[UserProfileService] setDoc completed successfully');
         });
 
         // Cache the data locally after successful save
         await this.cacheUserProfile(uid, dataToSave as UserProfileData);
         
-        console.log('[UserProfileService] ===== SAVE OPERATION SUCCESS =====');
-        console.log('[UserProfileService] Profile saved successfully to Firestore and cached');
-        console.log('[UserProfileService] Saved to path:', `${this.COLLECTION_NAME}/${uid}`);
         return {
           success: true,
           message: 'Profile saved successfully',
         };
       } catch (error) {
         // If Firestore save fails, cache locally for later sync
-        console.warn('[UserProfileService] ===== SAVE OPERATION FAILED - CACHING LOCALLY =====');
         console.warn('[UserProfileService] Firestore save failed, caching locally:', error);
-        console.log('[UserProfileService] Error details:', {
-          code: error.code,
-          message: error.message,
-          name: error.name
-        });
         
         await this.cacheUserProfile(uid, dataToSave as UserProfileData);
         
@@ -175,7 +142,6 @@ class UserProfileService {
         };
       }
     } catch (error) {
-      console.error('[UserProfileService] ===== SAVE OPERATION ERROR =====');
       console.error('[UserProfileService] Error saving user profile:', error);
       return {
         success: false,
@@ -189,8 +155,6 @@ class UserProfileService {
    */
   async getUserProfile(uid: string): Promise<ApiResponse<UserProfileData>> {
     try {
-      console.log('[UserProfileService] Fetching profile for user:', uid);
-      
       // Try to fetch from Firestore first
       try {
         const profileData = await this.retryOperation(async () => {
@@ -207,13 +171,11 @@ class UserProfileService {
         });
 
         if (profileData) {
-          console.log('[UserProfileService] Profile fetched from Firestore');
           return {
             success: true,
             data: profileData,
           };
         } else {
-          console.log('[UserProfileService] No profile found in Firestore');
           return {
             success: true,
             data: null,
@@ -225,7 +187,6 @@ class UserProfileService {
         // If Firestore fails, try to get from cache
         const cachedProfile = await this.getCachedUserProfile(uid);
         if (cachedProfile) {
-          console.log('[UserProfileService] Using cached profile data');
           return {
             success: true,
             data: cachedProfile,
@@ -255,8 +216,6 @@ class UserProfileService {
    */
   async updateUserProfile(uid: string, updates: Partial<UserProfileData>): Promise<ApiResponse<void>> {
     try {
-      console.log('[UserProfileService] Updating profile for user:', uid, updates);
-      
       const userDocRef = doc(db, this.COLLECTION_NAME, uid);
       
       const dataToUpdate = {
@@ -267,7 +226,6 @@ class UserProfileService {
       await this.retryOperation(async () => {
         await updateDoc(userDocRef, dataToUpdate);
       });
-      console.log('[UserProfileService] Profile updated successfully');
 
       return {
         success: true,
@@ -278,7 +236,6 @@ class UserProfileService {
       // Handle specific Firestore errors
       if (error.code === 'unavailable' || error.code === 'deadline-exceeded') {
         console.warn('[UserProfileService] Firestore temporarily unavailable, will retry...');
-        // Could implement retry logic here if needed
       }
       
       return {
@@ -293,8 +250,6 @@ class UserProfileService {
    */
   async deleteUserProfile(uid: string): Promise<ApiResponse<void>> {
     try {
-      console.log('[UserProfileService] Deleting profile for user:', uid);
-      
       const userDocRef = doc(db, this.COLLECTION_NAME, uid);
       await this.retryOperation(async () => {
         await updateDoc(userDocRef, {
@@ -303,8 +258,6 @@ class UserProfileService {
         });
       });
       
-      console.log('[UserProfileService] Profile marked as deleted');
-
       return {
         success: true,
       };
@@ -314,7 +267,6 @@ class UserProfileService {
       // Handle specific Firestore errors
       if (error.code === 'unavailable' || error.code === 'deadline-exceeded') {
         console.warn('[UserProfileService] Firestore temporarily unavailable, will retry...');
-        // Could implement retry logic here if needed
       }
       
       return {

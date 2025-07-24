@@ -20,13 +20,6 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 let db;
 try {
   db = getFirestore(app);
-  
-  // Enable offline persistence for Firestore
-  // This allows Firestore to work offline and sync when back online
-  console.log('[Firebase] Firestore initialized with offline persistence');
-  
-  // Note: Firestore offline persistence is enabled by default in React Native
-  // but we can configure additional settings if needed
 } catch (error) {
   console.error('[Firebase] Error initializing Firestore:', error);
   throw error;
@@ -39,12 +32,10 @@ try {
   auth = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage),
   });
-  console.log('[Firebase] Auth initialized with AsyncStorage persistence');
 } catch (error) {
   // If auth is already initialized, get the existing instance
   if (error.code === 'auth/already-initialized') {
     auth = getAuth(app);
-    console.log('[Firebase] Using existing Auth instance');
   } else {
     console.error('[Firebase] Error initializing Auth:', error);
     throw error;
@@ -59,7 +50,6 @@ const FirebaseNetworkUtils = {
   async enableFirestoreNetwork() {
     try {
       await enableNetwork(db);
-      console.log('[Firebase] Firestore network enabled');
       return true;
     } catch (error) {
       console.error('[Firebase] Error enabling Firestore network:', error);
@@ -73,7 +63,6 @@ const FirebaseNetworkUtils = {
   async disableFirestoreNetwork() {
     try {
       await disableNetwork(db);
-      console.log('[Firebase] Firestore network disabled');
       return true;
     } catch (error) {
       console.error('[Firebase] Error disabling Firestore network:', error);
@@ -88,10 +77,9 @@ const FirebaseNetworkUtils = {
     try {
       // Try to enable network to test connection
       await enableNetwork(db);
-      console.log('[Firebase] Firestore connection verified');
       return true;
     } catch (error) {
-      console.warn('[Firebase] Firestore connection check failed:', error);
+      console.error('[Firebase] Error checking Firestore connection:', error);
       return false;
     }
   }
