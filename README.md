@@ -113,13 +113,13 @@ npm test -- --coverage
 
 Use this template when implementing new features to maintain consistency with the project's architecture and best practices:
 
-```markdown
-# [Feature Name] Implementation
-
 You are a senior frontend engineer experienced in TypeScript, React Native, and modular app architecture of Expo.
 I want you to help me scaffold a new feature implementation following a structured template.
 
 Use the format below to describe the new feature implementation plan: 
+```markdown
+# [Feature Name] Implementation
+
 ## Project Context
 [Briefly describe the feature and its purpose]
 
