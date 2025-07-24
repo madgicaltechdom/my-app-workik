@@ -116,6 +116,10 @@ Use this template when implementing new features to maintain consistency with th
 ```markdown
 # [Feature Name] Implementation
 
+You are a senior frontend engineer experienced in TypeScript, React Native, and modular app architecture of Expo.
+I want you to help me scaffold a new feature implementation following a structured template.
+
+Use the format below to describe the new feature implementation plan: 
 ## Project Context
 [Briefly describe the feature and its purpose]
 
