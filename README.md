@@ -2,6 +2,35 @@
 
 A modern React Native application for user authentication, profile management, and settings, built with Firebase and comprehensive form validation. The project showcases enterprise-grade best practices including TypeScript, modular architecture, styled-components, offline support, and comprehensive end-to-end testing with Maestro.
 
+## 📑 Table of Contents
+
+- [✨ Recent Refactoring](#-recent-refactoring-typescript-migration--style-separation)
+  - [Architecture Improvements](#-architecture-improvements)
+  - [Component Structure Pattern](#-component-structure-pattern)
+  - [Styling Standards](#-styling-standards)
+  - [Accessibility & UX](#-accessibility--ux)
+  - [Testing Integration](#-testing-integration)
+- [✨ Features](#-features)
+  - [Authentication System](#-authentication-system)
+  - [Profile Management](#-profile-management-recently-enhanced)
+  - [Settings & Preferences](#-settings--preferences)
+  - [Internationalization](#-internationalization)
+  - [Testing & Quality Assurance](#-testing--quality-assurance)
+  - [Accessibility & UX](#accessibility--ux-1)
+- [🏗 Project Structure](#project-structure)
+- [🚀 Setup](#setup)
+- [🏃‍♂️ Running the App](#️-running-the-app)
+- [🧪 Running Maestro Tests](#running-maestro-tests)
+- [🛠 Feature Development Guide](#-feature-development-guide)
+  - [Prompt Template](#prompt-template)
+  - [Maestro E2E Test Requirements](#maestro-e2e-test-requirements)
+  - [Running Maestro Tests](#running-maestro-tests-for-new-features)
+- [💻 Technologies Used](#technologies-used)
+  - [Core Technologies](#core-technologies)
+  - [Testing](#testing)
+  - [Development Tools](#development-tools)
+- [📝 License](#-license)
+
 > **Latest Updates**: Complete Profile UI modernization with Firebase Firestore integration, comprehensive i18n support, offline caching, and enhanced Maestro test coverage.
 
 ## Overview
