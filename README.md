@@ -266,160 +266,26 @@ font-size: ${({ theme }) => theme.fontSizes.xxl};        // Doesn't exist
 
 Use the following prompt template when implementing new features to maintain consistency with the project's architecture and best practices:
 
-```markdown
-# [Feature Name] Implementation Request
+I need to implement a new [FEATURE_NAME] feature in my React Native Expo project. Please help me implement this following the project's established patterns and best practices:
 
-## Project Context
-[Briefly describe the feature and its purpose]
+## Project Structure
+- TypeScript with strict type checking
+- Feature-based architecture in [src/features/](cci:7://file:///Users/kapiljain/Documents/workit/my-app/src/features:0:0-0:0)
+- Styled-components for theming
+- React Navigation for routing
+- Firebase/Firestore for backend
+- i18n for internationalization
+- Jest/Testing Library for testing
 
 ## Feature Requirements
-1. Core functionality:
-   - [List main functionality points]
-   - [Include user stories if applicable]
+1. Core functionality: [Describe the main functionality]
+2. Key screens: [List the main screens needed]
+3. Data model: [Describe the data structure]
 
-2. Key screens:
-   - [List all screens needed]
+## Implementation Guidelines
 
-3. Data model:
-   - [Describe the data structure]
-   - [Include Firestore schema if applicable]
-
-## Technical Implementation
-
-### File Structure
-```
-src/features/[feature-name]/
-  ├── components/     # Reusable UI components
-  ├── screens/        # Screen components
-  ├── hooks/          # Custom hooks
-  ├── contexts/       # Context providers
-  ├── services/       # API/services
-  ├── types/          # TypeScript types
-  ├── __tests__/      # Unit/Integration tests
-  └── index.ts        # Public API exports
-```
-
-### Required Components
-- [List components to be created]
-- [Include brief description of each]
-
-### State Management
-- [Describe state management approach]
-- [List required context/reducers]
-
-### API Integration
-- [List required API endpoints]
-- [Describe data fetching strategy]
-
-## Maestro E2E Test Requirements
-
-### Test Files
-Create these in `.maestro/tests/[feature-name]/`:
-1. `[feature-name]_create_flow.yaml`
-2. `[feature-name]_read_flow.yaml`
-3. `[feature-name]_update_flow.yaml`
-4. `[feature-name]_delete_flow.yaml`
-5. `[feature-name]_error_handling.yaml`
-
-### Test Guidelines
-1. **Test Data**:
-   - Use environment variables for test credentials
-   - Clean up test data after tests
-   - Use unique identifiers for test data
-
-2. **Test Cases**:
-   - Happy paths for all CRUD operations
-   - Error cases and edge cases
-   - Offline behavior
-   - Navigation flows
-
-3. **Best Practices**:
-   - Use `testID` for element selection
-   - Add assertions for all important states
-   - Include accessibility testing
-   - Test on multiple screen sizes
-
-### Example Test Structure
-```yaml
-# .maestro/tests/feature/create_flow.yaml
-appId: com.yourapp
----
-- clearState
-- launchApp
-- tapOn: "TabBarItem-Feature"
-- assertVisible: "Feature List"
-- tapOn: "createButton"
-- inputText: "Test Item" # Use testID: input-item-name
-- tapOn: "saveButton"
-- assertVisible: "Item created successfully"
-- assertVisible: "Test Item"
-```
-
-## Deliverables
-- [ ] All TypeScript files with proper typing
-- [ ] Unit and integration tests (80%+ coverage)
-- [ ] Maestro E2E test flows
-- [ ] Documentation updates
-- [ ] i18n support for all user-facing text
-- [ ] Dark/light theme support
-- [ ] Accessibility implementation
-
-## Example Implementation
-For reference, see these existing features:
-- Profile Management: `src/features/profile/`
-- Authentication: `src/features/auth/`
-- Settings: `src/features/settings/`
-
-## Running Maestro Tests for New Features
-
-1. **Add test files** to `.maestro/tests/[feature-name]/`
-2. **Run specific test flow**:
-   ```bash
-   maestro test .maestro/tests/feature/create_flow.yaml
-   ```
-3. **Run all feature tests**:
-   ```bash
-   maestro test .maestro/tests/feature/
-   ```
-4. **Generate test reports**:
-   ```bash
-   maestro test --format junit .maestro/tests/feature/ > test-results.xml
-   ```
-
-For more details, refer to the [Maestro documentation](https://maestro.mobile.dev/).
-
-## Technologies Used
-
-### **Core Technologies**
-- **React Native** (with TypeScript) - Cross-platform mobile development
-- **Expo** (managed workflow) - Development platform and toolchain
-- **TypeScript** - Type safety and enhanced developer experience
-
-### **Backend & Data**
-- **Firebase Authentication** - User authentication and session management
-- **Firebase Firestore** - NoSQL database for custom profile data
-- **AsyncStorage** - Local storage for caching and offline support
-
-### **UI & Styling**
-- **styled-components/native** - Component styling with theme integration
-- **React Navigation** (v6) - Typed navigation with smooth transitions
-- **React Native Safe Area Context** - Safe area management
-- **Custom Theme System** - Modular theme with dark mode support
-
-### **Internationalization & Accessibility**
-- **react-i18next** - Comprehensive internationalization support
-- **ARIA Compliance** - Full accessibility with screen reader support
-- **Keyboard Navigation** - Complete keyboard accessibility
-
-### **Testing & Quality**
-- **Maestro** - End-to-end UI testing with comprehensive coverage
-- **Page Object Model** - Structured test organization
-- **Accessibility Testing** - Automated ARIA compliance verification
-
-### **Development Tools**
-- **ESLint & Prettier** - Code formatting and linting
-- **Metro** - JavaScript bundler for React Native
-- **Flipper** - Debugging and development tools
+### 1. File Structure
+Please create these files following the project's patterns:
 
 ## Refactoring Prompt for AI Assistants
 
@@ -447,7 +313,51 @@ const StyledComponent = styled(View)<StyledProps>`
 // 4. Include accessibility and i18n
 accessibilityRole="button"
 accessibilityLabel={t('component.label')}
-```
+
+
+### 2. Technical Requirements
+- Use TypeScript interfaces for all props and state
+- Follow the project's theme structure for styling
+- Implement proper error handling and loading states
+- Add accessibility attributes
+- Support both light/dark themes
+- Include i18n support for all user-facing text
+
+### 3. Component Implementation
+For each component:
+- Create a TypeScript interface for props
+- Use styled-components with theme
+- Add proper TypeScript types
+- Implement proper error boundaries
+- Add loading states
+
+### 4. Testing
+- Unit tests for all components
+- Integration tests for user flows
+- Test all edge cases
+- Mock all external dependencies
+
+### 5. Navigation
+- Add to the existing navigation structure
+- Implement proper typing for navigation params
+- Add deep linking support if applicable
+
+### 6. Data Management
+- Use Firebase/Firestore for data persistence
+- Implement proper data validation
+- Add offline support if applicable
+
+### 7. Deliverables
+- All TypeScript files with proper typing
+- Unit and integration tests
+- Documentation for the new feature
+- Update any relevant documentation
+
+## Example Implementation
+For reference, here's how similar features are implemented in the project:
+- User profile: [src/features/profile/](cci:7://file:///Users/kapiljain/Documents/workit/my-app/src/features/profile:0:0-0:0)
+- Authentication: [src/features/auth/](cci:7://file:///Users/kapiljain/Documents/workit/my-app/src/features/auth:0:0-0:0)
+- Settings: [src/features/settings/](cci:7://file:///Users/kapiljain/Documents/workit/my-app/src/features/settings:0:0-0:0)
 
 ### **Key Principles:**
 - **TypeScript First**: All new code must be TypeScript with proper interfaces
