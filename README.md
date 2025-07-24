@@ -287,34 +287,6 @@ I need to implement a new [FEATURE_NAME] feature in my React Native Expo project
 ### 1. File Structure
 Please create these files following the project's patterns:
 
-## Refactoring Prompt for AI Assistants
-
-When working on this codebase, follow these established patterns:
-
-### **Component Creation Pattern:**
-```typescript
-// 1. Create component folder structure
-ComponentName/
-├── ComponentName.tsx
-├── ComponentName.styles.ts
-├── ComponentName.types.ts
-└── index.ts
-
-// 2. Use TypeScript interfaces
-export interface ComponentNameProps {
-  // Define all props with proper types
-}
-
-// 3. Use styled-components for reusable components
-const StyledComponent = styled(View)<StyledProps>`
-  // Theme-based styling
-`;
-
-// 4. Include accessibility and i18n
-accessibilityRole="button"
-accessibilityLabel={t('component.label')}
-
-
 ### 2. Technical Requirements
 - Use TypeScript interfaces for all props and state
 - Follow the project's theme structure for styling
@@ -358,6 +330,33 @@ For reference, here's how similar features are implemented in the project:
 - User profile: [src/features/profile/](cci:7://file:///Users/kapiljain/Documents/workit/my-app/src/features/profile:0:0-0:0)
 - Authentication: [src/features/auth/](cci:7://file:///Users/kapiljain/Documents/workit/my-app/src/features/auth:0:0-0:0)
 - Settings: [src/features/settings/](cci:7://file:///Users/kapiljain/Documents/workit/my-app/src/features/settings:0:0-0:0)
+
+## Refactoring Prompt for AI Assistants
+
+When working on this codebase, follow these established patterns:
+
+### **Component Creation Pattern:**
+```typescript
+// 1. Create component folder structure
+ComponentName/
+├── ComponentName.tsx
+├── ComponentName.styles.ts
+├── ComponentName.types.ts
+└── index.ts
+
+// 2. Use TypeScript interfaces
+export interface ComponentNameProps {
+  // Define all props with proper types
+}
+
+// 3. Use styled-components for reusable components
+const StyledComponent = styled(View)<StyledProps>`
+  // Theme-based styling
+`;
+
+// 4. Include accessibility and i18n
+accessibilityRole="button"
+accessibilityLabel={t('component.label')}
 
 ### **Key Principles:**
 - **TypeScript First**: All new code must be TypeScript with proper interfaces
