@@ -144,16 +144,16 @@ src/features/[feature-name]/
   └── index.ts        # Public API exports
 
 ### Theme Integration
-```typescript
+typescript
 // Use these theme properties:
 const styles = styled.View`
   background-color: ${({ theme }) => theme.colors.background};
   padding-horizontal: ${({ theme }) => theme.spacing.md};
   padding-vertical: ${({ theme }) => theme.spacing.sm};
 `;
-```
 
 ### Testing Requirements
+
 1. **Unit Tests**: Test components, hooks, and utilities
 2. **Integration Tests**: Test component interactions
 3. **E2E Tests**: Add Maestro test flows
@@ -162,7 +162,7 @@ const styles = styled.View`
 For reference, see these features:
 - `src/features/auth/` - Authentication flows
 - `src/features/profile/` - User profile management
-```
+
 
 ### Component Development
 
@@ -192,7 +192,7 @@ For reference, see these features:
        </S.ButtonContainer>
      );
    };
-   ```
+   
 
 ### State Management
 
@@ -203,21 +203,21 @@ For reference, see these features:
 ### Testing Guidelines
 
 1. **Test Structure**
-   ```typescript
+   typescript
    describe('Button Component', () => {
      it('renders correctly', () => {
        const { getByText } = render(<Button>Test</Button>);
        expect(getByText('Test')).toBeTruthy();
      });
    });
-   ```
+
 
 2. **Test Coverage**
    - Test component rendering
    - Test user interactions
    - Test edge cases
    - Test error states
-
+```
 ## 🤝 Contributing
 
 We welcome contributions! Please follow these steps:
