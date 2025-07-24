@@ -138,7 +138,6 @@ Use this template when implementing new features to maintain consistency with th
 ## Implementation Details
 
 ### File Structure
-```
 src/features/[feature-name]/
   ├── components/     # Reusable UI components
   ├── screens/        # Screen components
@@ -147,7 +146,6 @@ src/features/[feature-name]/
   ├── types/          # TypeScript types
   ├── __tests__/      # Unit/Integration tests
   └── index.ts        # Public API exports
-```
 
 ### Theme Integration
 ```typescript
@@ -173,13 +171,12 @@ For reference, see these features:
 ### Component Development
 
 1. **File Structure**
-   ```
+   
    ComponentName/
    ├── ComponentName.tsx        # Main component
    ├── ComponentName.styles.ts  # Styled components
    ├── ComponentName.test.tsx   # Tests
    └── index.ts                 # Exports
-   ```
 
 2. **Example Component**
    ```tsx
