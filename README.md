@@ -1,5 +1,11 @@
 # StorageApp
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.9.5-blue.svg)](https://www.typescriptlang.org/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.72.0-61dafb.svg)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-49.0.0-000020.svg)](https://expo.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+
 A modern React Native application for user authentication, profile management, and settings, built with Firebase and comprehensive form validation. The project showcases enterprise-grade best practices including TypeScript, modular architecture, styled-components, offline support, and comprehensive end-to-end testing with Maestro.
 
 ## 📑 Table of Contents
@@ -20,355 +26,209 @@ A modern React Native application for user authentication, profile management, a
 - [🏗 Project Structure](#project-structure)
 - [🚀 Setup](#setup)
 - [🏃‍♂️ Running the App](#️-running-the-app)
-- [🧪 Running Maestro Tests](#running-maestro-tests)
+- [🧪 Testing](#-testing)
+  - [Unit & Integration Tests](#unit--integration-tests)
+  - [E2E Tests with Maestro](#e2e-tests-with-maestro)
+  - [Test Coverage](#test-coverage)
 - [🛠 Feature Development Guide](#-feature-development-guide)
-  - [Prompt Template](#prompt-template)
-  - [Maestro E2E Test Requirements](#maestro-e2e-test-requirements)
-  - [Running Maestro Tests](#running-maestro-tests-for-new-features)
+  - [Component Development](#component-development)
+  - [State Management](#state-management)
+  - [Testing Guidelines](#testing-guidelines)
+  - [Feature Template](#feature-template)
+- [🤝 Contributing](#-contributing)
+- [🐛 Troubleshooting](#-troubleshooting)
+- [🚀 Deployment](#-deployment)
 - [💻 Technologies Used](#technologies-used)
-  - [Core Technologies](#core-technologies)
-  - [Testing](#testing)
-  - [Development Tools](#development-tools)
 - [📝 License](#-license)
 
-> **Latest Updates**: Complete Profile UI modernization with Firebase Firestore integration, comprehensive i18n support, offline caching, and enhanced Maestro test coverage.
+## 🚀 Quick Start
 
-## Overview
+```bash
+# Clone the repository
+git clone <repo-url>
+cd my-app
 
-StorageApp is a cross-platform mobile app that allows users to:
-- Sign up, log in, and reset their password
-- View and update their profile
-- Manage app settings
-- Experience persistent authentication using Firebase Auth and AsyncStorage
+# Install dependencies
+npm install
 
-## ✨ Recent Refactoring (TypeScript Migration & Style Separation)
-
-This app has been comprehensively refactored to follow modern React Native best practices:
-
-### 🎯 **Architecture Improvements**
-- **Complete TypeScript Migration**: All components, screens, hooks, and services migrated from JavaScript to TypeScript with strict type safety
-- **Modular Component Structure**: Components organized with separated logic, styles, and types
-- **Style File Separation**: Styled-components extracted to dedicated `.styles.ts` files
-- **Enhanced Theme System**: Modular theme with colors, typography, spacing, and dark mode support
-
-### 🏗️ **Component Structure Pattern**
-```
-src/components/common/ComponentName/
-├── ComponentName.tsx        # Main component logic
-├── ComponentName.styles.ts  # Styled-components with theme integration
-├── ComponentName.types.ts   # TypeScript interfaces
-└── index.ts                # Clean exports
+# Start the development server
+npm start
 ```
 
-### 🎨 **Styling Standards**
-- **Reusable Components**: Use `styled-components/native` for consistent theming
-- **Screen Components**: Use React Native `StyleSheet` for performance
-- **Theme Integration**: All components support light/dark mode automatically
-- **Responsive Design**: Components adapt to different screen sizes
-
-### ♿ **Accessibility & UX**
-- **ARIA Compliance**: Proper roles, labels, and live regions
-- **Keyboard Navigation**: Full keyboard accessibility support
-- **Screen Reader Support**: Comprehensive accessibility labels and hints
-- **Form Validation**: Real-time validation with user-friendly error messages
-
-### 🧪 **Testing Integration**
-- **Maestro Test Alignment**: All test cases updated for refactored components
-- **TestID Consistency**: Standardized test identifiers across components
-- **Accessibility Testing**: Tests verify ARIA compliance and screen reader support
-
-## Features
-
-### 🔐 **Authentication System**
-- Email/password login with enhanced validation and error handling
-- User registration with comprehensive form validation
-- Password reset functionality with Firebase Auth integration
-- Persistent authentication using AsyncStorage
-- Secure token management and automatic session refresh
-
-### 👤 **Profile Management** *(Recently Enhanced)*
-- **Modern Profile UI**: Completely redesigned with contemporary styling
-- **Firebase Firestore Integration**: Custom profile fields (bio, phone, date of birth)
-- **Real-time Data Sync**: Seamless merging of Firebase Auth and Firestore data
-- **Offline Support**: Comprehensive caching with AsyncStorage fallback
-- **Form Validation**: Real-time validation with user-friendly error messages
-- **i18n Support**: Fully internationalized with proper translation keys
-
-### ⚙️ **Settings & Preferences**
-- App preferences management with scrollable interface
-- Dark mode support with automatic theme switching
-- User preference persistence
-
-### 🌐 **Internationalization**
-- Multi-language support with react-i18next
-- Structured translation files with feature-based organization
-- Dynamic language switching
-
-### 🧪 **Testing & Quality Assurance**
-- **Comprehensive Maestro Tests**: Full profile editing flow coverage
-- **Accessibility Testing**: ARIA compliance and screen reader support
-- **Error Handling Tests**: Validation and edge case coverage
-- **Performance Testing**: Loading states and offline scenarios
-
-### ♿ **Accessibility & UX**
-- Full ARIA compliance with proper roles and labels
-- Keyboard navigation support
-- Screen reader compatibility
-- Loading states and user feedback
-- Responsive design patterns
-
-## Project Structure
+## 🏗 Project Structure
 
 ```
 my-app/
 ├── src/
-│   ├── components/common/           # Reusable UI components with modular structure
-│   │   ├── Button/                  # Button component with styles, types, logic
-│   │   ├── Input/                   # Input component with validation & accessibility
-│   │   ├── ErrorMessage/            # Error display with multiple variants
-│   │   ├── LoadingOverlay/          # Loading states with multiple variants
-│   │   └── index.ts                 # Clean component exports
-│   ├── features/                    # Feature modules (auth, profile, home, settings)
-│   │   ├── auth/screens/            # Authentication screens (TypeScript)
-│   │   ├── profile/                 # Profile management with context
-│   │   ├── home/screens/            # Home dashboard (TypeScript)
-│   │   └── settings/screens/        # Settings management (TypeScript)
-│   ├── hooks/                       # Custom React hooks (TypeScript)
-│   ├── localization/                # i18n configuration and language files
-│   ├── navigation/                  # Typed navigation (App, Auth, Tab navigators)
-│   ├── services/                    # Firebase config, auth service, secure storage
-│   ├── theme/                       # Modular theme system
-│   │   ├── colors.ts               # Color tokens with light/dark variants
-│   │   ├── typography.ts           # Font families, sizes, and text styles
-│   │   ├── spacing.ts              # Spacing scale, shadows, and layout tokens
-│   │   └── index.ts                # Main theme export with utilities
-│   ├── types/                       # Shared TypeScript interfaces
-│   └── utils/                       # Validation utilities and helpers
-├── .maestro/                        # Maestro E2E test flows and element selectors
-│   ├── elements/auth.js            # Page Object Model for test elements
-│   ├── tests/auth/                 # Authentication flow tests
-│   └── tests/profile/              # Profile editing and management tests
-├── assets/                          # Images and static assets
-├── App.tsx                         # App entry point (TypeScript)
-├── tsconfig.json                   # TypeScript configuration
-├── package.json                    # Project dependencies and scripts
-└── README.md                       # Project documentation
+│   ├── components/common/           # Reusable UI components
+│   │   ├── Button/                 # Button component with variants
+│   │   ├── Input/                  # Form input with validation
+│   │   └── ...
+│   ├── features/                   # Feature modules
+│   │   ├── auth/                   # Authentication
+│   │   ├── profile/                # User profile
+│   │   └── ...
+│   ├── hooks/                      # Custom React hooks
+│   ├── services/                   # API and business logic
+│   └── theme/                      # Theme configuration
+└── tests/                          # Test files
+    ├── unit/                       # Unit tests
+    └── e2e/                        # E2E test scenarios
 ```
 
-## Setup
+## 🧪 Testing
 
-1. **Clone the repository:**
-   ```sh
-   git clone <repo-url>
-   cd my-app
-   ```
+### Unit & Integration Tests
 
-2. **Install dependencies:**
-   ```sh
-   npm install
-   # or
-   yarn install
-   ```
+```bash
+# Run all tests
+npm test
 
-3. **Install required native modules:**
-   - For persistent auth, ensure `@react-native-async-storage/async-storage` is installed.
-   - For Maestro testing, install Maestro CLI: https://maestro.mobile.dev/getting-started/installation
+# Run tests in watch mode
+npm test -- --watch
 
-4. **Configure Firebase:**
-   - Update `src/services/firebaseConfig.js` with your Firebase project credentials if needed.
-
-## Running the App
-
-- **Start Metro and launch the app:**
-  ```sh
-  npm start
-  # or
-  yarn start
-  ```
-- **Run on Android/iOS:**
-  ```sh
-  npm run android
-  npm run ios
-  ```
-
-## Running Maestro Tests
-
-1. **Start an Android emulator or iOS simulator.**
-2. **Run Maestro tests:**
-   ```sh
-   # Authentication Tests
-   maestro test .maestro/tests/auth/login_positive.yaml
-   maestro test .maestro/tests/auth/login_validation.yaml
-   maestro test .maestro/tests/auth/forgot_password.yaml
-   
-   # Profile Management Tests (Recently Added)
-   maestro test .maestro/tests/profile/edit_profile.yaml
-   ```
-   Or run all tests in the `.maestro/tests/` directory.
-
-- **Comprehensive Test Coverage:**
-  - **Authentication Flow**: Login, signup, password reset with validation
-  - **Profile Management**: Complete profile editing with all fields
-  - **Data Persistence**: Verify profile data saves and loads correctly
-  - **Error Handling**: Invalid input validation and error recovery
-  - **Accessibility**: ARIA compliance and screen reader support
-  - **Loading States**: Async operations and user feedback
-  - **Navigation**: Screen transitions and back navigation
-  - **Offline Support**: Cached data fallback scenarios
-
-## Development Guidelines
-
-> **📋 Comprehensive Guidelines Available**: See [`DEVELOPMENT_GUIDELINES.md`](./DEVELOPMENT_GUIDELINES.md) for detailed best practices, patterns, and team standards based on this project's learnings.
-
-### 🎯 **Quick Reference - Key Principles**
-
-#### **React Native Styling (Critical)**
-```typescript
-// ❌ WRONG - Causes runtime errors
-const StyledView = styled.View`
-  padding: 16px;           // px units not supported
-  margin: 0 auto;          // CSS shorthand not supported
-`;
-
-// ✅ CORRECT - Use specific properties
-const StyledView = styled.View`
-  padding-horizontal: 16;
-  padding-vertical: 16;
-  align-self: center;
-`;
+# Run tests with coverage
+npm test -- --coverage
 ```
 
-#### **Firebase Integration**
-```typescript
-// ✅ CRITICAL: Import Firebase config FIRST
-import './src/services/firebaseConfig'; // Must be first!
-import { UserProvider } from './src/contexts/UserContext';
+### E2E Tests with Maestro
+
+```bash
+# Install Maestro CLI (if not installed)
+curl -Ls "https://get.maestro.mobile.dev" | bash
+
+# Run all Maestro flows
+maestro test .maestro/tests/
+
+# Run specific test suite
+maestro test .maestro/tests/auth/login_flow.yaml
 ```
 
-#### **Theme Integration**
-```typescript
-// ✅ Always verify theme properties exist
-background-color: ${({ theme }) => theme.colors.primary}; // Valid
-font-size: ${({ theme }) => theme.fontSizes.md};          // Valid
+### Test Coverage
+We maintain a minimum of 80% test coverage. To check current coverage:
 
-// ❌ These cause "Empty input string" errors
-background-color: ${({ theme }) => theme.colors.surface}; // Doesn't exist
-font-size: ${({ theme }) => theme.fontSizes.xxl};        // Doesn't exist
+```bash
+npm test -- --coverage
 ```
-
-#### **Testing & Accessibility**
-- Include `testID` props for all interactive elements
-- Use consistent naming: `input-{fieldName}`, `{action}-button`
-- Add accessibility labels and roles
-- Follow Page Object Model pattern in Maestro tests
 
 ## 🛠 Feature Development Guide
 
-Use the following prompt template when implementing new features to maintain consistency with the project's architecture and best practices:
+### Component Development
 
-I need to implement a new [FEATURE_NAME] feature in my React Native Expo project. Please help me implement this following the project's established patterns and best practices:
+1. **File Structure**
+   ```
+   ComponentName/
+   ├── ComponentName.tsx        # Main component
+   ├── ComponentName.styles.ts  # Styled components
+   ├── ComponentName.test.tsx   # Tests
+   └── index.ts                 # Exports
+   ```
 
-## Project Structure
-- TypeScript with strict type checking
-- Feature-based architecture in [src/features/](cci:7://file:///Users/kapiljain/Documents/workit/my-app/src/features:0:0-0:0)
-- Styled-components for theming
-- React Navigation for routing
-- Firebase/Firestore for backend
-- i18n for internationalization
-- Jest/Testing Library for testing
+2. **Example Component**
+   ```tsx
+   // Button/Button.tsx
+   import React from 'react';
+   import { ButtonProps } from './Button.types';
+   import * as S from './Button.styles';
 
-## Feature Requirements
-1. Core functionality: [Describe the main functionality]
-2. Key screens: [List the main screens needed]
-3. Data model: [Describe the data structure]
+   export const Button: React.FC<ButtonProps> = ({
+     children,
+     variant = 'primary',
+     ...props
+   }) => {
+     return (
+       <S.ButtonContainer variant={variant} {...props}>
+         <S.ButtonText>{children}</S.ButtonText>
+       </S.ButtonContainer>
+     );
+   };
+   ```
 
-## Implementation Guidelines
+### State Management
 
-### 1. File Structure
-Please create these files following the project's patterns:
+- Use React Context for global state
+- Keep state as local as possible
+- Use custom hooks for reusable state logic
 
-### 2. Technical Requirements
-- Use TypeScript interfaces for all props and state
-- Follow the project's theme structure for styling
-- Implement proper error handling and loading states
-- Add accessibility attributes
-- Support both light/dark themes
-- Include i18n support for all user-facing text
+### Testing Guidelines
 
-### 3. Component Implementation
-For each component:
-- Create a TypeScript interface for props
-- Use styled-components with theme
-- Add proper TypeScript types
-- Implement proper error boundaries
-- Add loading states
+1. **Test Structure**
+   ```typescript
+   describe('Button Component', () => {
+     it('renders correctly', () => {
+       const { getByText } = render(<Button>Test</Button>);
+       expect(getByText('Test')).toBeTruthy();
+     });
+   });
+   ```
 
-### 4. Testing
-- Unit tests for all components
-- Integration tests for user flows
-- Test all edge cases
-- Mock all external dependencies
+2. **Test Coverage**
+   - Test component rendering
+   - Test user interactions
+   - Test edge cases
+   - Test error states
 
-### 5. Navigation
-- Add to the existing navigation structure
-- Implement proper typing for navigation params
-- Add deep linking support if applicable
+## 🤝 Contributing
 
-### 6. Data Management
-- Use Firebase/Firestore for data persistence
-- Implement proper data validation
-- Add offline support if applicable
+We welcome contributions! Please follow these steps:
 
-### 7. Deliverables
-- All TypeScript files with proper typing
-- Unit and integration tests
-- Documentation for the new feature
-- Update any relevant documentation
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Example Implementation
-For reference, here's how similar features are implemented in the project:
-- User profile: [src/features/profile/](cci:7://file:///Users/kapiljain/Documents/workit/my-app/src/features/profile:0:0-0:0)
-- Authentication: [src/features/auth/](cci:7://file:///Users/kapiljain/Documents/workit/my-app/src/features/auth:0:0-0:0)
-- Settings: [src/features/settings/](cci:7://file:///Users/kapiljain/Documents/workit/my-app/src/features/settings:0:0-0:0)
+### Code Style
+- Follow TypeScript best practices
+- Use meaningful variable names
+- Add comments for complex logic
+- Keep components small and focused
 
-## Refactoring Prompt for AI Assistants
+## 🐛 Troubleshooting
 
-When working on this codebase, follow these established patterns:
+### Common Issues
 
-### **Component Creation Pattern:**
-```typescript
-// 1. Create component folder structure
-ComponentName/
-├── ComponentName.tsx
-├── ComponentName.styles.ts
-├── ComponentName.types.ts
-└── index.ts
+1. **Build Failures**
+   ```bash
+   # Clear Metro cache
+   npm start -- --reset-cache
+   
+   # Reinstall node_modules
+   rm -rf node_modules
+   npm install
+   ```
 
-// 2. Use TypeScript interfaces
-export interface ComponentNameProps {
-  // Define all props with proper types
-}
+2. **iOS Build Issues**
+   ```bash
+   cd ios
+   pod install
+   cd ..
+   ```
 
-// 3. Use styled-components for reusable components
-const StyledComponent = styled(View)<StyledProps>`
-  // Theme-based styling
-`;
+## 🚀 Deployment
 
-// 4. Include accessibility and i18n
-accessibilityRole="button"
-accessibilityLabel={t('component.label')}
+### Android
+```bash
+# Build APK
+cd android
+./gradlew assembleRelease
 
-### **Key Principles:**
-- **TypeScript First**: All new code must be TypeScript with proper interfaces
-- **Modular Architecture**: Separate logic, styles, and types into different files
-- **Theme Integration**: Use the modular theme system for all styling
-- **Accessibility**: Include ARIA properties and keyboard navigation
-- **Testing**: Add testIDs and update Maestro tests accordingly
-- **Performance**: Use useMemo, useCallback, and proper memoization
-- **Security**: Sanitize all user inputs and handle errors gracefully
+# Build AAB (Play Store)
+./gradlew bundleRelease
+```
 
-## Contributing
-Pull requests are welcome! Please follow the established TypeScript and architectural patterns. For major changes, open an issue first to discuss the proposed changes.
+### iOS
+1. Open `ios/YourApp.xcworkspace` in Xcode
+2. Select the target device
+3. Click "Product" > "Archive"
+4. Follow the prompts to upload to TestFlight
 
-## License
-[MIT](LICENSE)
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+  Made with ❤️ by [Your Team Name]
+</div>
