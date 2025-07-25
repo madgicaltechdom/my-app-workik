@@ -1,5 +1,5 @@
 import styled from 'styled-components/native';
-import { TextInput, Text, View } from 'react-native';
+import { TextInput, Text, View, Platform } from 'react-native';
 import { type Theme } from '../../../theme';
 
 interface StyledInputContainerProps {
@@ -36,10 +36,9 @@ export const LabelContainer = styled(View)`
 `;
 
 export const StyledLabel = styled(Text)<StyledLabelProps>`
-  ${({ theme }) => ({
-    ...theme.textStyles.inputLabel,
-  })}
-  
+  font-family: ${({ theme }) => theme.fontFamilies.regular};
+  font-size: ${({ theme }) => theme.fontSizes.sm}px;
+  line-height: ${({ theme }) => theme.lineHeights.sm}px;
   color: ${({ $hasError, $disabled, theme }) => {
     if ($hasError) return theme.colors.danger;
     if ($disabled) return theme.colors.textMuted;
@@ -78,21 +77,50 @@ export const StyledInputContainer = styled(View)<StyledInputContainerProps>`
   `}
   
   opacity: ${({ $disabled }) => $disabled ? 0.6 : 1};
+  
+  /* Ensure proper touch handling */
+  position: relative;
+  z-index: 1;
 `;
 
 export const StyledInput = styled(TextInput)<StyledInputProps>`
   padding: ${({ theme }) => theme.spacing.md}px;
   min-height: ${({ theme }) => theme.semanticSpacing.touchableMinHeight}px;
-  
-  ${({ theme }) => ({
-    ...theme.textStyles.input,
-  })}
+  font-family: ${({ theme }) => theme.fontFamilies.regular};
+  font-size: ${({ theme }) => theme.fontSizes.md}px;
+  line-height: ${({ theme }) => theme.lineHeights.md}px;
+  font-weight: ${({ theme }) => theme.fontWeights.normal};
   
   color: ${({ $disabled, theme }) => 
     $disabled ? theme.colors.textMuted : theme.colors.text
   };
   
-  /* Placeholder color is handled via placeholderTextColor prop */
+  /* Ensure the input is interactive */
+  opacity: 1;
+  
+  /* Handle text selection color */
+  text-align-vertical: center;
+  include-font-padding: false;
+  
+  /* Ensure proper touch handling */
+  width: 100%;
+  
+  /* Remove default web styles */
+  outline-width: 0;
+  
+  /* Platform specific styles */
+  ${Platform.select({
+    web: {
+      cursor: 'text',
+      '&:focus': {
+        outline: 'none',
+      },
+    },
+    default: {
+      /* On mobile, ensure the input is tappable */
+      minWidth: '100%',
+    },
+  })}
 `;
 
 export const HelperTextContainer = styled(View)`

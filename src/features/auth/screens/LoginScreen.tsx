@@ -13,7 +13,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
-import { Input, Button, ErrorMessage, LoadingOverlay } from '@/components/common';
+import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
+import { ErrorMessage } from '@/components/common/ErrorMessage';
+import { LoadingOverlay } from '@/components/common/LoadingOverlay';
 import { authService } from '@/services/authService';
 import { validateEmail, validateRequired, sanitizeInput } from '@/utils/validation';
 import { AuthStackParamList } from '@/types';
@@ -127,75 +130,62 @@ function LoginScreen({ navigation }: LoginScreenProps) {
   }, []);
 
   const validateForm = useCallback(() => {
-    const emailValidation = validateEmail(state.email);
-    if (!emailValidation.isValid) {
-      dispatch({ type: 'SET_ERROR', payload: emailValidation.errorMessage || '' });
-      return false;
-    }
+  // Always validate when the form is submitted
+  const emailValidation = validateEmail(state.email.trim());
+  if (!emailValidation.isValid) {
+    dispatch({ type: 'SET_ERROR', payload: emailValidation.errorMessage || 'Please enter a valid email address' });
+    return false;
+  }
 
-    const passwordValidation = validateRequired(state.password, 'Password');
-    if (!passwordValidation.isValid) {
-      dispatch({ type: 'SET_ERROR', payload: passwordValidation.errorMessage || '' });
-      return false;
-    }
+  const passwordValidation = validateRequired(state.password, 'Password');
+  if (!passwordValidation.isValid) {
+    dispatch({ type: 'SET_ERROR', payload: passwordValidation.errorMessage || 'Password is required' });
+    return false;
+  }
 
-    return true;
-  }, [state.email, state.password]);
+  return true;
+}, [state.email, state.password]);
+const handleLogin = useCallback(async () => {
+  if (!validateForm()) return;
 
-  const handleLogin = useCallback(async () => {
-    dispatch({ type: 'SET_ATTEMPTED_SUBMIT', payload: true });
-    dispatch({ type: 'CLEAR_ERROR' });
+  // Trim email and password to remove any accidental whitespace
+  const trimmedEmail = state.email.trim();
+  const trimmedPassword = state.password;
 
-    if (!validateForm()) {
-      return;
-    }
+  dispatch({ type: 'SET_LOADING', payload: true });
+  dispatch({ type: 'CLEAR_ERROR' });
+  dispatch({ type: 'SET_ATTEMPTED_SUBMIT', payload: true });
 
-    dispatch({ type: 'SET_LOADING', payload: true });
-
-    try {
-      await authService.login(state.email, state.password);
-      // Navigation will be handled by auth state observer
-    } catch (error: any) {
-      let errorMessage = t('auth.errors.loginFailed', { 
-        defaultValue: 'Login failed. Please try again.' 
-      });
-
-      switch (error.code) {
-        case 'auth/invalid-email':
-          errorMessage = t('auth.errors.invalidEmail', { 
-            defaultValue: 'Please enter a valid email address.' 
-          });
-          break;
-        case 'auth/user-not-found':
-          errorMessage = t('auth.errors.userNotFound', { 
-            defaultValue: 'No account found with this email address.' 
-          });
-          break;
-        case 'auth/wrong-password':
-          errorMessage = t('auth.errors.wrongPassword', { 
-            defaultValue: 'Incorrect password. Please try again.' 
-          });
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = t('auth.errors.tooManyRequests', { 
-            defaultValue: 'Too many failed attempts. Please try again later.' 
-          });
-          break;
-        case 'auth/user-disabled':
-          errorMessage = t('auth.errors.userDisabled', { 
-            defaultValue: 'This account has been disabled.' 
-          });
-          break;
-        default:
-          errorMessage = error.message || errorMessage;
-      }
-
-      dispatch({ type: 'SET_ERROR', payload: errorMessage });
-    } finally {
+  const loadingTimeout = setTimeout(() => {
+    if (state.isLoading) {
       dispatch({ type: 'SET_LOADING', payload: false });
+      dispatch({ 
+        type: 'SET_ERROR', 
+        payload: t('errors.timeout', { defaultValue: 'Request timed out. Please try again.' }) 
+      });
     }
-  }, [state.email, state.password, validateForm, t]);
+  }, 30000);
 
+  try {
+    // Use the trimmed values for login
+    await authService.login(trimmedEmail, trimmedPassword);
+    clearTimeout(loadingTimeout);
+    
+    // Update navigation to use the correct route name
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'MainTabs' }],
+    });
+  } catch (error) {
+    clearTimeout(loadingTimeout);
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : t('errors.unknown', { defaultValue: 'An unknown error occurred. Please try again.' });
+    dispatch({ type: 'SET_ERROR', payload: errorMessage });
+  } finally {
+    dispatch({ type: 'SET_LOADING', payload: false });
+  }
+}, [state.email, state.password, validateForm, t, navigation, state.isLoading]);
   const handleNavigateToSignup = useCallback(() => {
     navigation.navigate('Signup');
   }, [navigation]);
@@ -236,7 +226,7 @@ function LoginScreen({ navigation }: LoginScreenProps) {
               autoCapitalize="none"
               autoComplete="email"
               textContentType="emailAddress"
-              isDisabled={state.isLoading}
+              disabled={state.isLoading}
               accessibilityLabel={t('auth.emailInput', { defaultValue: 'Email input' })}
               testID="login-email-input"
             />
@@ -249,22 +239,22 @@ function LoginScreen({ navigation }: LoginScreenProps) {
               secureTextEntry
               autoComplete="password"
               textContentType="password"
-              isDisabled={state.isLoading}
+              disabled={state.isLoading}
               accessibilityLabel={t('auth.passwordInput', { defaultValue: 'Password input' })}
               testID="login-password-input"
             />
 
             <ErrorMessage
               message={state.errorMessage}
-              isVisible={Boolean(state.errorMessage)}
+              isVisible={state.hasAttemptedSubmit && Boolean(state.errorMessage)}
               testID="login-error-message"
             />
 
             <Button
               title={t('auth.loginButton', { defaultValue: 'Login' })}
               onPress={handleLogin}
-              isLoading={state.isLoading}
-              isDisabled={state.isLoading || !isFormValid}
+              loading={state.isLoading}
+              disabled={state.isLoading || !isFormValid}
               accessibilityLabel={t('auth.loginButtonLabel', { defaultValue: 'Login to your account' })}
               testID="login-submit-button"
             />
@@ -303,8 +293,9 @@ function LoginScreen({ navigation }: LoginScreenProps) {
       <LoadingOverlay
         isVisible={state.isLoading}
         message={t('auth.loggingIn', { defaultValue: 'Logging in...' })}
-        variant="modal"
+        variant="inline"
         testID="login-loading-overlay"
+        accessibilityLabel={t('auth.loggingIn', { defaultValue: 'Logging in...' })}
       />
     </SafeAreaView>
   );

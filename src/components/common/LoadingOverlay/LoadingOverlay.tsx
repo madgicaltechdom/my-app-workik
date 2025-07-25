@@ -15,7 +15,7 @@ import type { LoadingOverlayProps } from './LoadingOverlay.types';
 
 export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
   variant = 'modal',
-  visible = true,
+  isVisible = false,
   message,
   subMessage,
   size = 'large',
@@ -48,68 +48,69 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
 
   const defaultAccessibilityLabel = useMemo(() => {
     if (accessibilityLabel) return accessibilityLabel;
-    return t('common.loadingAccessibility', { 
-      defaultValue: 'Loading content, please wait' 
-    });
-  }, [accessibilityLabel, t]);
+    return defaultMessage;
+  }, [accessibilityLabel, defaultMessage]);
 
-  const content = (
+  const content = useMemo(() => (
     <StyledContentContainer
       $variant={variant}
       $isDark={isDark}
-      theme={currentTheme}
-      style={[
-        backgroundColor && { backgroundColor },
-        style,
-      ]}
+      style={style}
+      testID={testID}
+      accessibilityLabel={defaultAccessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole="none"
+      accessibilityLiveRegion="polite"
     >
-      <LoadingIndicatorContainer theme={currentTheme}>
+      <LoadingIndicatorContainer $variant={variant}>
         <ActivityIndicator
           size={indicatorSize}
           color={indicatorColor}
-          testID={testID ? `${testID}-indicator` : undefined}
+          testID="loading-indicator"
         />
       </LoadingIndicatorContainer>
-
-      <MessageContainer theme={currentTheme}>
-        <StyledMessage
-          $variant={variant}
-          theme={currentTheme}
-          testID={testID ? `${testID}-message` : undefined}
-        >
-          {defaultMessage}
-        </StyledMessage>
-
-        {subMessage && (
-          <StyledSubMessage
-            theme={currentTheme}
-            testID={testID ? `${testID}-sub-message` : undefined}
-          >
-            {subMessage}
-          </StyledSubMessage>
-        )}
-      </MessageContainer>
+      {(message || subMessage) && (
+        <MessageContainer $variant={variant}>
+          {message && (
+            <StyledMessage $variant={variant} $isDark={isDark}>
+              {message}
+            </StyledMessage>
+          )}
+          {subMessage && (
+            <StyledSubMessage $variant={variant} $isDark={isDark}>
+              {subMessage}
+            </StyledSubMessage>
+          )}
+        </MessageContainer>
+      )}
     </StyledContentContainer>
-  );
+  ), [
+    variant,
+    isDark,
+    style,
+    testID,
+    defaultAccessibilityLabel,
+    accessibilityHint,
+    indicatorSize,
+    indicatorColor,
+    message,
+    subMessage,
+  ]);
 
   if (variant === 'modal') {
     return (
       <StyledModal
-        visible={visible}
+        visible={isVisible}
         transparent
         animationType="fade"
         onRequestClose={onRequestClose}
-        testID={testID}
-        accessibilityViewIsModal
+        statusBarTranslucent
       >
         <StyledOverlayContainer
           $variant={variant}
           $isDark={isDark}
-          theme={currentTheme}
-          accessibilityRole="progressbar"
-          accessibilityLabel={defaultAccessibilityLabel}
-          accessibilityHint={accessibilityHint}
-          accessibilityLiveRegion="polite"
+          $backgroundColor={backgroundColor}
+          onStartShouldSetResponder={() => true}
         >
           {content}
         </StyledOverlayContainer>
@@ -118,16 +119,12 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
   }
 
   if (variant === 'overlay') {
-    return visible ? (
+    return isVisible ? (
       <StyledOverlayContainer
         $variant={variant}
         $isDark={isDark}
-        theme={currentTheme}
-        testID={testID}
-        accessibilityRole="progressbar"
-        accessibilityLabel={defaultAccessibilityLabel}
-        accessibilityHint={accessibilityHint}
-        accessibilityLiveRegion="polite"
+        $backgroundColor={backgroundColor}
+        style={style}
       >
         {content}
       </StyledOverlayContainer>
@@ -135,16 +132,11 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
   }
 
   // inline variant
-  return visible ? (
+  return isVisible ? (
     <StyledOverlayContainer
       $variant={variant}
       $isDark={isDark}
-      theme={currentTheme}
-      testID={testID}
-      accessibilityRole="progressbar"
-      accessibilityLabel={defaultAccessibilityLabel}
-      accessibilityHint={accessibilityHint}
-      accessibilityLiveRegion="polite"
+      $backgroundColor={backgroundColor}
       style={style}
     >
       {content}

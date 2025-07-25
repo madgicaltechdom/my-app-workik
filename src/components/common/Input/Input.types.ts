@@ -6,6 +6,7 @@ export interface InputProps extends Omit<TextInputProps, 'style'> {
   error?: string;
   helperText?: string;
   disabled?: boolean;
+  isDisabled?: boolean; // Added for compatibility with existing code
   maxLength?: number;
   showCharacterCount?: boolean;
   containerStyle?: ViewStyle;

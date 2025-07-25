@@ -62,7 +62,11 @@ export const StyledContentContainer = styled(View)<StyledContentContainerProps>`
           padding: ${theme.spacing.xl}px;
           margin: ${theme.spacing.lg}px;
           min-width: 200px;
-          ${theme.shadows.lg};
+          shadow-color: ${theme.colors.shadow};
+          shadow-offset: 0px 2px;
+          shadow-opacity: 0.2;
+          shadow-radius: 4px;
+          elevation: 5;
         `;
       default: // inline
         return `
@@ -81,23 +85,32 @@ export const MessageContainer = styled(View)<{ theme: Theme }>`
 `;
 
 export const StyledMessage = styled(Text)<{ $variant: 'modal' | 'inline' | 'overlay'; theme: Theme }>`
+  font-family: ${({ theme }) => theme.fontFamilies.regular};
+  color: ${({ theme }) => theme.colors.text};
+  text-align: center;
+  margin-top: ${({ theme }) => theme.spacing.sm}px;
+  
   ${({ theme, $variant }) => {
     switch ($variant) {
       case 'modal':
       case 'overlay':
-        return theme.textStyles.body;
+        return `
+          font-size: ${theme.fontSizes.md}px;
+          line-height: ${theme.lineHeights.md}px;
+        `;
       default: // inline
-        return theme.textStyles.bodySmall;
+        return `
+          font-size: ${theme.fontSizes.sm}px;
+          line-height: ${theme.lineHeights.sm}px;
+        `;
     }
   }}
-  
-  color: ${({ theme }) => theme.colors.text};
-  text-align: center;
-  margin-top: ${({ theme }) => theme.spacing.sm}px;
 `;
 
 export const StyledSubMessage = styled(Text)<{ theme: Theme }>`
-  ${({ theme }) => theme.textStyles.caption}
+  font-family: ${({ theme }) => theme.fontFamilies.regular};
+  font-size: ${({ theme }) => theme.fontSizes.xs}px;
+  line-height: ${({ theme }) => theme.lineHeights.xs}px;
   color: ${({ theme }) => theme.colors.textSecondary};
   text-align: center;
   margin-top: ${({ theme }) => theme.spacing.xs}px;

@@ -21,7 +21,8 @@ export const Input: React.FC<InputProps> = ({
   required = false,
   error,
   helperText,
-  disabled = false,
+  disabled: propDisabled = false,
+  isDisabled,
   maxLength,
   showCharacterCount = false,
   value,
@@ -42,6 +43,9 @@ export const Input: React.FC<InputProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [internalValue, setInternalValue] = useState(value || '');
 
+  // Handle both disabled and isDisabled props (isDisabled takes precedence)
+  const disabled = isDisabled !== undefined ? isDisabled : propDisabled;
+  
   const hasError = Boolean(error);
   const displayValue = value !== undefined ? value : internalValue;
   const characterCount = displayValue.length;
@@ -100,28 +104,21 @@ export const Input: React.FC<InputProps> = ({
   }, [accessibilityHint, required, maxLength, t]);
 
   return (
-    <InputContainer theme={currentTheme} style={containerStyle}>
+    <InputContainer style={containerStyle}>
       {label && (
-        <LabelContainer theme={currentTheme}>
+        <LabelContainer>
           <StyledLabel
             $required={required}
             $hasError={hasError}
             $disabled={disabled}
             $isDark={isDark}
             theme={currentTheme}
-            testID={testID ? `${testID}-label` : undefined}
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no"
           >
             {label}
           </StyledLabel>
-          {required && (
-            <RequiredIndicator 
-              theme={currentTheme}
-              testID="required-indicator"
-              accessibilityLabel={t('common.required', { defaultValue: 'Required' })}
-            >
-              *
-            </RequiredIndicator>
-          )}
+          {required && <RequiredIndicator theme={currentTheme}>*</RequiredIndicator>}
         </LabelContainer>
       )}
 
@@ -133,25 +130,24 @@ export const Input: React.FC<InputProps> = ({
         theme={currentTheme}
       >
         <StyledInput
-          $hasError={hasError}
-          $disabled={disabled}
-          $isDark={isDark}
-          theme={currentTheme}
+          {...props}
           value={displayValue}
           onChangeText={handleChangeText}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          editable={!disabled}
           placeholder={placeholder}
           placeholderTextColor={placeholderTextColor}
+          editable={!disabled}
+          selectTextOnFocus={!disabled}
+          $hasError={hasError}
+          $disabled={disabled}
+          $isDark={isDark}
+          theme={currentTheme}
           maxLength={maxLength}
           testID={testID}
-          accessibilityRole="textInput"
           accessibilityLabel={defaultAccessibilityLabel}
           accessibilityHint={inputAccessibilityHint}
           accessibilityState={accessibilityState}
-          style={inputStyle}
-          {...props}
         />
       </StyledInputContainer>
 

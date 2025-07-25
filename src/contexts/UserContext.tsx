@@ -22,7 +22,7 @@ interface UserProviderProps {
   children: ReactNode;
 }
 
-export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
+const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   console.log('[UserContext] Initializing UserProvider');
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -240,3 +240,7 @@ export const useUser = (): UserContextType => {
   });
   return context;
 };
+
+export { UserProvider, useUser };
+
+export default UserProvider;

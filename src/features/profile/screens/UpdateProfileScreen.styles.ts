@@ -87,14 +87,14 @@ export const Input = styled(TextInput)<{ theme: any; multiline?: boolean }>`
   border-width: 0;
   font-weight: 500;
   line-height: 24px;
-  min-height: ${({ multiline }) => multiline ? 100 : 'auto'};
+  min-height: ${({ multiline }) => multiline ? 100 : 0};
 `;
 
 export const ErrorText = styled.Text`
   color: ${({ theme }) => theme.colors.danger};
-  font-size: 12px;
-  margin-top: 4px;
-  margin-left: 4px;
+  font-size: 12;
+  margin-top: 4;
+  margin-left: 4;
 `;
 
 export const Button = styled(TouchableOpacity)<{ disabled?: boolean }>`
@@ -164,6 +164,6 @@ export const CancelButton = styled(TouchableOpacity)`
 
 export const CancelButtonText = styled.Text`
   color: ${({ theme }) => theme.colors.text};
-  font-size: 16px;
+  font-size: 16;
   font-weight: 600;
 `;

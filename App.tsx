@@ -7,7 +7,7 @@ import { theme } from './src/theme';
 // This fixes the "Empty input string" error by ensuring Firebase is properly initialized
 // before any components try to use it (especially UserProvider)
 import './src/services/firebaseConfig';
-import { UserProvider } from '@/contexts/UserContext';
+import UserProvider from '@/contexts/UserContext';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './src/localization/i18n';
 import { ProfileProvider } from '@/features/profile/contexts/ProfileContext';

@@ -14,6 +14,7 @@ import type { ErrorMessageProps } from './ErrorMessage.types';
 
 export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   message,
+  isVisible = true, // Default to true for backward compatibility
   variant = 'inline',
   severity = 'error',
   showIcon = true,
@@ -30,6 +31,11 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const currentTheme = isDark ? darkTheme : theme;
+
+  // If not visible, return null
+  if (!isVisible) {
+    return null;
+  }
 
   // Auto-hide functionality
   useEffect(() => {
@@ -75,7 +81,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   }, [accessibilityLabel, severity, message, t]);
 
   const accessibilityRole = useMemo(() => {
-    return severity === 'error' ? 'alert' : 'text';
+    return severity === 'error' ? 'alert' : 'none';
   }, [severity]);
 
   const accessibilityLiveRegion = useMemo(() => {

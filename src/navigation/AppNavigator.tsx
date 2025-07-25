@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useFirebaseAuth } from '../hooks/useFirebaseAuth';
 import { AuthNavigator } from './AuthNavigator';
 import { TabNavigator } from './TabNavigator';
-import { LoadingOverlay } from '../components/common';
+import { LoadingOverlay } from '../components/common/LoadingOverlay';
 import { RootStackParamList } from '../types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

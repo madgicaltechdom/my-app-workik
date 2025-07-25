@@ -2,11 +2,12 @@ import React, { useMemo, useCallback } from 'react';
 import { useColorScheme, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { theme, darkTheme } from '../../../theme';
-import { StyledButton, StyledButtonText, LoadingContainer, LoadingText } from './Button.styles';
+import { StyledButton, StyledButtonText, LoadingContainer } from './Button.styles';
 import type { ButtonProps } from './Button.types';
 
 export const Button: React.FC<ButtonProps> = ({
   children,
+  title,
   variant = 'primary',
   size = 'medium',
   disabled = false,
@@ -44,15 +45,20 @@ export const Button: React.FC<ButtonProps> = ({
     }
   }, [variant, isDisabled, currentTheme]);
 
+  const buttonContent = useMemo(() => {
+    const content = title || children;
+    return content;
+  }, [title, children]);
+
   const defaultAccessibilityLabel = useMemo(() => {
     if (accessibilityLabel) return accessibilityLabel;
     
-    if (typeof children === 'string') {
-      return children;
+    if (typeof buttonContent === 'string') {
+      return buttonContent;
     }
     
     return t('common.button', { defaultValue: 'Button' });
-  }, [accessibilityLabel, children, t]);
+  }, [accessibilityLabel, buttonContent, t]);
 
   const accessibilityState = useMemo(() => ({
     disabled: isDisabled,
@@ -87,18 +93,17 @@ export const Button: React.FC<ButtonProps> = ({
             color={loadingColor}
             testID={`${testID}-loading-indicator`}
           />
-          {typeof children === 'string' && (
-            <LoadingText theme={currentTheme}>
-              <StyledButtonText
-                $variant={variant}
-                $size={size}
-                $disabled={isDisabled}
-                $isDark={isDark}
-                theme={currentTheme}
-              >
-                {children}
-              </StyledButtonText>
-            </LoadingText>
+          {typeof buttonContent === 'string' && (
+            <StyledButtonText
+              $variant={variant}
+              $size={size}
+              $disabled={isDisabled}
+              $isDark={isDark}
+              theme={currentTheme}
+              style={{ marginLeft: 8 }}
+            >
+              {buttonContent}
+            </StyledButtonText>
           )}
         </LoadingContainer>
       ) : (
@@ -109,7 +114,7 @@ export const Button: React.FC<ButtonProps> = ({
           $isDark={isDark}
           theme={currentTheme}
         >
-          {children}
+          {buttonContent}
         </StyledButtonText>
       )}
     </StyledButton>

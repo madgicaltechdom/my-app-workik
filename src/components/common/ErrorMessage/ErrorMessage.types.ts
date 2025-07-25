@@ -2,6 +2,7 @@ import type { ViewStyle } from 'react-native';
 
 export interface ErrorMessageProps {
   message: string;
+  isVisible?: boolean;
   variant?: 'inline' | 'banner' | 'toast';
   severity?: 'error' | 'warning' | 'info';
   showIcon?: boolean;
