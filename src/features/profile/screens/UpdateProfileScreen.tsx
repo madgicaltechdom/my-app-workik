@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Alert } from 'react-native';
+import { Alert, useWindowDimensions, useColorScheme } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useUser } from '../../../contexts/UserContext';
 import { authService } from '../../../services/authService';
-// Import the ORIGINAL styled components to test if they cause the error
+import { lightTheme, darkTheme } from '../../../theme';
 import {
   ScrollViewContainer,
   Title,
@@ -18,73 +21,105 @@ import {
   ButtonText,
   CancelButton,
   CancelButtonText,
+  LoadingOverlay,
+  LoadingIndicator,
 } from './UpdateProfileScreen.styles';
 
-const UpdateProfileScreen: React.FC = () => {
-  console.log('[UpdateProfileScreen] Rendering screen with I18N INTEGRATION');
-  
+// Type for the translation function
+type UpdateProfileScreenTranslation = (key: string) => string;
+
+// Create a wrapper component to ensure theme is properly provided
+const ThemedUpdateProfileScreen: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useUser();
+  const { width } = useWindowDimensions();
+  const colorScheme = useColorScheme() || 'light';
+  const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
   
-  // Debug logging for i18n translations
-  console.log('[UpdateProfileScreen] Testing i18n translations:', {
-    title: `"${t('profile.updateProfile')}"`,
-    displayName: `"${t('profile.displayName')}"`,
-    email: `"${t('profile.email')}"`,
-    phone: `"${t('profile.phone')}"`,
-    titleLength: t('profile.updateProfile').length,
-    displayNameLength: t('profile.displayName').length,
-    emailLength: t('profile.email').length,
-    phoneLength: t('profile.phone').length,
-  });
-  
-  // Add form state that integrates with user data
-  const [formData, setFormData] = useState({
-    displayName: 'Default User',
-    email: 'user@example.com',
-    phone: '', // Allow empty for phone since it's optional
-    bio: '', // Allow empty for bio since it's optional
-    dateOfBirth: '', // Add date of birth field
-  });
+  return (
+    <UpdateProfileScreenContent 
+      t={t as UpdateProfileScreenTranslation}
+      user={user} 
+      width={width} 
+      theme={theme} 
+    />
+  );
+};
 
-  // Debug logging for user data
-  console.log('[UpdateProfileScreen] User from context:', {
-    user: user ? {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      phoneNumber: user.phoneNumber,
-      bio: user.bio,
-      dateOfBirth: user.dateOfBirth,
-    } : 'null',
-    userExists: !!user,
+type UpdateProfileScreenProps = {
+  t: UpdateProfileScreenTranslation;
+  user: any; // Replace with proper User type
+  width: number;
+  theme: any; // Replace with proper Theme type
+};
+
+const UpdateProfileScreenContent: React.FC<UpdateProfileScreenProps> = ({
+  t,
+  user,
+  width,
+  theme,
+}) => {
+  const navigation = useNavigation<StackNavigationProp<any>>();
+  const [formData, setFormData] = useState({
+    displayName: '',
+    email: '',
+    phone: '',
+    bio: '',
+    dateOfBirth: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Initialize form with user data when available
   useEffect(() => {
     if (user) {
-      console.log('[UpdateProfileScreen] Setting form data from user');
       setFormData({
-        displayName: user.displayName || 'Default User',
-        email: user.email || 'user@example.com', 
-        phone: user.phoneNumber || '', // Allow empty for phone
-        bio: user.bio || '', // Initialize bio from user context
-        dateOfBirth: user.dateOfBirth || '', // Initialize date of birth from user context
+        displayName: user.displayName || '',
+        email: user.email || '',
+        phone: user.phoneNumber || '',
+        bio: user.bio || '',
+        dateOfBirth: user.dateOfBirth || '',
       });
     }
   }, [user]);
 
   const handleInputChange = (field: string, value: string) => {
-    console.log(`[UpdateProfileScreen] Input change - ${field}: "${value}" (length: ${value.length})`);
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Clear error when user types
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
   };
 
-  const [isLoading, setIsLoading] = useState(false);
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.displayName?.trim()) {
+      newErrors.displayName = t('profile.errors.displayNameRequired');
+    }
+    
+    if (!formData.email?.trim()) {
+      newErrors.email = t('profile.errors.emailRequired');
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = t('profile.errors.invalidEmail');
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSave = async () => {
-    console.log('[UpdateProfileScreen] Save button pressed');
-    console.log('[UpdateProfileScreen] Form data:', formData);
-    
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
     
     try {
@@ -101,17 +136,16 @@ const UpdateProfileScreen: React.FC = () => {
           t('profile.updateSuccess.message'),
           [{ text: t('common.ok') }]
         );
-        console.log('[UpdateProfileScreen] Profile updated successfully');
+        navigation.goBack();
       } else {
         Alert.alert(
           t('profile.updateError.title'),
           result.error || t('profile.updateError.message'),
           [{ text: t('common.ok') }]
         );
-        console.error('[UpdateProfileScreen] Profile update failed:', result.error);
       }
     } catch (error) {
-      console.error('[UpdateProfileScreen] Profile update error:', error);
+      console.error('Update profile error:', error);
       Alert.alert(
         t('profile.updateError.title'),
         t('profile.updateError.message'),
@@ -121,82 +155,110 @@ const UpdateProfileScreen: React.FC = () => {
       setIsLoading(false);
     }
   };
-  
+
+  const handleCancel = () => {
+    navigation.goBack();
+  };
+
   return (
     <ScrollViewContainer>
       <Title>{t('profile.updateTitle')}</Title>
       <Subtitle>{t('profile.updateSubtitle')}</Subtitle>
       
-      {/* Display Name Input */}
-      <FormField>
-        <Label>{t('profile.displayName')}</Label>
-        <Input
-          value={formData.displayName}
-          onChangeText={(text: string) => handleInputChange('displayName', text)}
-          placeholder={t('profile.displayNamePlaceholder')}
-          testID="input-displayName"
-        />
-      </FormField>
+      <FormContainer>
+        {/* Display Name */}
+        <FormField>
+          <Label>{t('profile.displayName')}</Label>
+          <Input
+            value={formData.displayName}
+            onChangeText={(text: string) => handleInputChange('displayName', text)}
+            placeholder={t('profile.displayNamePlaceholder')}
+            testID="input-displayName"
+          />
+          {errors.displayName && <ErrorText>{errors.displayName}</ErrorText>}
+        </FormField>
 
-      {/* Email Input */}
-      <FormField>
-        <Label>{t('profile.email')}</Label>
-        <Input
-          value={formData.email}
-          onChangeText={(text: string) => handleInputChange('email', text)}
-          placeholder={t('profile.emailPlaceholder')}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          testID="input-email"
-        />
-      </FormField>
+        {/* Email */}
+        <FormField>
+          <Label>{t('profile.email')}</Label>
+          <Input
+            value={formData.email}
+            onChangeText={(text: string) => handleInputChange('email', text)}
+            placeholder={t('profile.emailPlaceholder')}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            testID="input-email"
+            editable={false}
+            selectTextOnFocus={false}
+          />
+          {errors.email && <ErrorText>{errors.email}</ErrorText>}
+        </FormField>
 
-      {/* Phone Input */}
-      <FormField>
-        <Label>{t('profile.phoneNumber')}</Label>
-        <Input
-          value={formData.phone}
-          onChangeText={(text: string) => handleInputChange('phone', text)}
-          placeholder={t('profile.phonePlaceholder')}
-          keyboardType="phone-pad"
-          testID="input-phone"
-        />
-      </FormField>
+        {/* Phone */}
+        <FormField>
+          <Label>{t('profile.phoneNumber')}</Label>
+          <Input
+            value={formData.phone}
+            onChangeText={(text: string) => handleInputChange('phone', text)}
+            placeholder={t('profile.phonePlaceholder')}
+            keyboardType="phone-pad"
+            testID="input-phone"
+          />
+        </FormField>
 
-      {/* Bio Input */}
-      <FormField>
-        <Label>{t('profile.bio')}</Label>
-        <Input
-          value={formData.bio}
-          onChangeText={(text: string) => handleInputChange('bio', text)}
-          placeholder={t('profile.bioPlaceholder')}
-          multiline={true}
-          numberOfLines={4}
-          textAlignVertical="top"
-          testID="input-bio"
-        />
-      </FormField>
+        {/* Bio */}
+        <FormField>
+          <Label>{t('profile.bio')}</Label>
+          <Input
+            value={formData.bio}
+            onChangeText={(text: string) => handleInputChange('bio', text)}
+            placeholder={t('profile.bioPlaceholder')}
+            multiline
+            numberOfLines={4}
+            testID="input-bio"
+          />
+        </FormField>
 
-      {/* Date of Birth Input */}
-      <FormField>
-        <Label>{t('profile.dateOfBirth')}</Label>
-        <Input
-          value={formData.dateOfBirth}
-          onChangeText={(text: string) => handleInputChange('dateOfBirth', text)}
-          placeholder={t('profile.dateOfBirthPlaceholder')}
-          keyboardType="numeric"
-          testID="input-dateOfBirth"
-        />
-      </FormField>
+        {/* Date of Birth */}
+        <FormField>
+          <Label>{t('profile.dateOfBirth')}</Label>
+          <Input
+            value={formData.dateOfBirth}
+            onChangeText={(text: string) => handleInputChange('dateOfBirth', text)}
+            placeholder={t('profile.dateOfBirthPlaceholder')}
+            keyboardType="numeric"
+            testID="input-dateOfBirth"
+          />
+        </FormField>
 
-      {/* Save Button */}
-      <ButtonContainer>
-        <Button onPress={handleSave} disabled={isLoading} testID="save-button">
-          <ButtonText>{isLoading ? t('profile.updating') : t('profile.saveChanges')}</ButtonText>
-        </Button>
-      </ButtonContainer>
+        <ButtonContainer>
+          <Button 
+            onPress={handleSave} 
+            disabled={isLoading}
+            testID="save-button"
+          >
+            <ButtonText>
+              {isLoading ? t('common.saving') : t('common.saveChanges')}
+            </ButtonText>
+          </Button>
+          
+          <CancelButton 
+            onPress={handleCancel}
+            disabled={isLoading}
+            testID="cancel-button"
+          >
+            <CancelButtonText>{t('common.cancel')}</CancelButtonText>
+          </CancelButton>
+        </ButtonContainer>
+      </FormContainer>
+
+      {isLoading && (
+        <LoadingOverlay>
+          <LoadingIndicator />
+        </LoadingOverlay>
+      )}
     </ScrollViewContainer>
   );
 };
 
-export default UpdateProfileScreen;
+export default ThemedUpdateProfileScreen;

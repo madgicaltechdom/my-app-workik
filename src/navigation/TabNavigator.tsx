@@ -32,48 +32,40 @@ const ErrorFallback = ({ error }: { error: Error }) => (
 
 const ProfileStackScreen = () => {
   console.log('[TabNavigator] Rendering ProfileStackScreen');
+  const { user } = useUser();
+  const colorScheme = useColorScheme() || 'light';
+  const currentTheme = colorScheme === 'dark' ? darkTheme : lightTheme;
   
-  try {
-    const { user } = useUser();
-    console.log('[TabNavigator] User in ProfileStackScreen:', user ? 'exists' : 'null');
-    
-    return (
-      <ProfileStack.Navigator 
-        screenOptions={{ 
+  return (
+    <ProfileStack.Navigator 
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: currentTheme.colors.background,
+        },
+        headerTintColor: currentTheme.colors.text,
+        headerTitleStyle: {
+          fontWeight: '600',
+        },
+      }}
+    >
+      <ProfileStack.Screen 
+        name="ProfileMain" 
+        component={ProfileScreen}
+        options={{
           headerShown: false,
-          cardStyle: { backgroundColor: lightTheme.colors.background }
         }}
-      >
-        <ProfileStack.Screen 
-          name="ProfileMain" 
-          component={ProfileScreen}
-          initialParams={{ user }}
-        />
-        <ProfileStack.Screen 
-          name="UpdateProfile" 
-          component={UpdateProfileScreen}
-          options={{
-            title: 'Update Profile',
-            headerShown: true,
-            headerBackTitle: 'Back',
-            headerStyle: {
-              backgroundColor: lightTheme.colors.background,
-              elevation: 0,
-              shadowOpacity: 0,
-              borderBottomWidth: 0,
-            },
-            headerTintColor: lightTheme.colors.text,
-            headerTitleStyle: {
-              fontWeight: '600',
-            },
-          }}
-        />
-      </ProfileStack.Navigator>
-    );
-  } catch (error) {
-    console.error('[TabNavigator] Error in ProfileStackScreen:', error);
-    return <ErrorFallback error={error as Error} />;
-  }
+      />
+      <ProfileStack.Screen 
+        name="UpdateProfile" 
+        component={UpdateProfileScreen}
+        options={{
+          title: 'Update Profile',
+          headerShown: true,
+          headerBackTitle: 'Back',
+        }}
+      />
+    </ProfileStack.Navigator>
+  );
 };
 
 // Tab navigator with error boundary
@@ -113,21 +105,12 @@ export const TabNavigator: React.FC = () => {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        headerStyle: {
-          backgroundColor: currentTheme.colors.background,
-          elevation: 0,
-          shadowOpacity: 0,
-          borderBottomWidth: 1,
-          borderBottomColor: currentTheme.colors.border,
-        },
-        headerTitleStyle: {
-          color: currentTheme.colors.text,
-          fontWeight: 'bold',
-        },
+        headerStyle: createStyles(currentTheme, insets).header,
+        headerTitleStyle: createStyles(currentTheme, insets).headerTitle,
         headerRight: () => (
           <TouchableOpacity 
             onPress={handleLogout}
-            style={styles.logoutButton}
+            style={createStyles(currentTheme, insets).logoutButton}
             accessibilityLabel="Logout"
             testID="logout-button"
           >
@@ -146,27 +129,15 @@ export const TabNavigator: React.FC = () => {
     const tabBarOptions = {
       activeTintColor: currentTheme.colors.primary,
       inactiveTintColor: currentTheme.colors.gray,
-      style: {
-        backgroundColor: currentTheme.colors.background,
-        borderTopWidth: 0,
-        paddingBottom: insets.bottom > 0 ? insets.bottom - 8 : 8,
-        height: 60 + (insets.bottom > 0 ? insets.bottom - 8 : 8),
-        elevation: 0,
-        shadowOpacity: 0,
-      },
-      labelStyle: {
-        fontSize: 12,
-        margin: 0,
-        padding: 0,
-      },
-      tabStyle: {
-        padding: 4,
-      },
+      style: createStyles(currentTheme, insets).tabBar,
+      labelStyle: createStyles(currentTheme, insets).tabLabel,
+      tabStyle: createStyles(currentTheme, insets).tab,
     };
 
     return (
       <Tab.Navigator
         screenOptions={({ route }) => screenOptions(route)}
+        tabBarOptions={tabBarOptions}
       >
         <Tab.Screen 
           name="Home" 
@@ -200,34 +171,85 @@ export const TabNavigator: React.FC = () => {
   }
 };
 
-const styles = StyleSheet.create({
+// Style functions
+const createStyles = (theme: any, insets: any) => StyleSheet.create({
+  // Header styles
+  header: {
+    backgroundColor: theme.colors.background,
+    elevation: 0,
+    shadowOpacity: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  headerTitle: {
+    color: theme.colors.text,
+    fontWeight: '600',
+    fontSize: theme.fontSizes.lg,
+  },
+  logoutButton: {
+    marginRight: theme.spacing.md,
+    padding: theme.spacing.xs,
+  },
+  
+  // Tab bar styles
+  tabBar: {
+    backgroundColor: theme.colors.background,
+    borderTopWidth: 0,
+    paddingBottom: insets.bottom > 0 ? insets.bottom - 8 : 8,
+    height: 60 + (insets.bottom > 0 ? insets.bottom - 8 : 8),
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  tabLabel: {
+    fontSize: theme.fontSizes.xs,
+    margin: 0,
+    padding: 0,
+  },
+  tab: {
+    padding: theme.spacing.xs,
+  },
+  
+  // Error boundary styles
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: lightTheme.colors.background,
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.background,
   },
   errorText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: lightTheme.colors.error,
-    marginBottom: 10,
+    ...theme.textStyles.body,
+    color: theme.colors.danger,
+    marginBottom: theme.spacing.sm,
   },
   errorDetails: {
-    fontSize: 16,
-    color: lightTheme.colors.text,
-    marginBottom: 20,
+    ...theme.textStyles.small,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.md,
     textAlign: 'center',
   },
   errorStack: {
-    fontSize: 12,
-    color: lightTheme.colors.subText,
+    ...theme.textStyles.small,
+    color: theme.colors.textMuted,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    marginTop: theme.spacing.md,
   },
-  logoutButton: {
-    marginRight: 16,
-    padding: 8,
+});
+
+// Create styles for profile stack
+const createProfileStackStyles = (theme: any) => ({
+  stackNavigator: {
+    headerShown: false,
+    cardStyle: { backgroundColor: theme.colors.background }
+  },
+  header: {
+    backgroundColor: theme.colors.background,
+    elevation: 0,
+    shadowOpacity: 0,
+    borderBottomWidth: 0,
+  },
+  headerTitle: {
+    fontWeight: '600',
   },
 });
 

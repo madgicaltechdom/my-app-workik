@@ -2,7 +2,6 @@ import React from 'react';
 import { 
   View, 
   Text, 
-  useWindowDimensions,
   ScrollView,
   RefreshControl,
   useColorScheme,
@@ -13,19 +12,18 @@ import { useFirebaseAuth } from '@/hooks/useFirebaseAuth';
 import { theme, darkTheme, type Theme } from '@/theme';
 import { StatCard } from '@/components/common';
 import type { HomeScreenProps } from '@/types';
+import { createHomeStyles } from './HomeScreen.styles';
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const { user } = useFirebaseAuth();
   const colorScheme = useColorScheme();
-  const { width } = useWindowDimensions();
   
   const isDark = colorScheme === 'dark';
   const currentTheme = isDark ? darkTheme : theme;
-  const styles = createStyles(currentTheme, width);
+  const styles = createHomeStyles(currentTheme);
 
   const displayName = user?.displayName || user?.email?.split('@')[0] || t('common.user');
-
   const [refreshing, setRefreshing] = React.useState(false);
 
   const onRefresh = React.useCallback(async () => {
@@ -96,6 +94,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               style={styles.seeAll}
               onPress={() => navigation.navigate('Activity')}
               accessibilityRole="button"
+              accessibilityLabel={t('common.seeAll')}
             >
               {t('common.seeAll')}
             </Text>
@@ -111,63 +110,5 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const createStyles = (currentTheme: Theme, width: number) => ({
-  container: {
-    flex: 1,
-    backgroundColor: currentTheme.colors.background,
-  },
-  scrollContent: {
-    paddingBottom: 20,
-  },
-  header: {
-    padding: 16,
-  },
-  welcomeText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: currentTheme.colors.text,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: currentTheme.colors.textSecondary,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 16,
-  },
-  section: {
-    marginTop: 24,
-    paddingHorizontal: 16,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: currentTheme.colors.text,
-  },
-  seeAll: {
-    color: currentTheme.colors.primary,
-    fontSize: 14,
-  },
-  emptyState: {
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: currentTheme.colors.surface,
-    borderRadius: 8,
-  },
-  emptyStateText: {
-    color: currentTheme.colors.textSecondary,
-    textAlign: 'center',
-  },
-});
 
 export default HomeScreen;

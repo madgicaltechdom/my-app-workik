@@ -70,6 +70,7 @@ export const en = {
     loading: 'Loading...',
     success: 'Success',
     tryAgain: 'Try Again',
+    saveChanges: 'Update Changes',
   },
   validation: {
     required: '{{field}} is required',

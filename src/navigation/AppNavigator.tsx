@@ -34,7 +34,6 @@ export const AppNavigator: React.FC<AppNavigatorProps> = (props) => {
 
   if (isLoading) {
     console.log('[AppNavigator] Showing LoadingOverlay');
- 
     return (
       <LoadingOverlay 
         variant="modal"
@@ -43,14 +42,33 @@ export const AppNavigator: React.FC<AppNavigatorProps> = (props) => {
       />
     );
   }
+
   console.log('[AppNavigator] Showing NavigationContainer');
 
-  // Removed duplicate ProfileProvider (already in App.tsx)
   return (
     <NavigationContainer
       {...(linking ? { linking } : {})}
     >
-      {user ? <TabNavigator /> : <AuthNavigator />}
+      <Stack.Navigator 
+        screenOptions={{
+          headerShown: false,
+          animation: 'fade',
+        }}
+      >
+        {user ? (
+          <Stack.Screen 
+            name="Main" 
+            component={TabNavigator} 
+            options={{ headerShown: false }}
+          />
+        ) : (
+          <Stack.Screen 
+            name="Auth" 
+            component={AuthNavigator} 
+            options={{ headerShown: false }}
+          />
+        )}
+      </Stack.Navigator>
     </NavigationContainer>
   );
 };

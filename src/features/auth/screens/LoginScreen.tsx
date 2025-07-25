@@ -145,6 +145,7 @@ function LoginScreen({ navigation }: LoginScreenProps) {
 
   return true;
 }, [state.email, state.password]);
+
 const handleLogin = useCallback(async () => {
   if (!validateForm()) return;
 
@@ -170,12 +171,8 @@ const handleLogin = useCallback(async () => {
     // Use the trimmed values for login
     await authService.login(trimmedEmail, trimmedPassword);
     clearTimeout(loadingTimeout);
-    
-    // Update navigation to use the correct route name
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'MainTabs' }],
-    });
+    // No need to navigate here - the AppNavigator will handle the navigation
+    // based on the authentication state
   } catch (error) {
     clearTimeout(loadingTimeout);
     const errorMessage = error instanceof Error 
@@ -185,7 +182,8 @@ const handleLogin = useCallback(async () => {
   } finally {
     dispatch({ type: 'SET_LOADING', payload: false });
   }
-}, [state.email, state.password, validateForm, t, navigation, state.isLoading]);
+}, [state.email, state.password, validateForm, t, state.isLoading]);
+
   const handleNavigateToSignup = useCallback(() => {
     navigation.navigate('Signup');
   }, [navigation]);

@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
-import { useWindowDimensions } from 'react-native';
-
+import { useWindowDimensions, useColorScheme } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { MainStackParamList } from '../../../types';
 import { useTranslation } from 'react-i18next';
+import { MainStackParamList } from '../../../types';
 import { useUser } from '../../../contexts/UserContext';
 import { authService } from '../../../services/authService';
-import { Button } from '../components/Button';
+import { Button } from '../../../components/common/Button';
+import { lightTheme, darkTheme } from '../../../theme';
 import {
   Container,
   Title,
@@ -21,12 +21,34 @@ import {
   InfoTitle,
   InfoValue,
   ButtonContainer,
+  styles as profileStyles,
 } from './ProfileScreen.styles';
 
-const ProfileScreen: React.FC = () => {
+// Create a wrapper component to ensure theme is properly provided
+const ThemedProfileScreen: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useUser();
   const { width } = useWindowDimensions();
+  const colorScheme = useColorScheme() || 'light';
+  const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
+  const styles = profileStyles(theme);
+  
+  return <ProfileScreenContent t={t} user={user} width={width} styles={styles} />;
+};
+
+type ProfileScreenContentProps = {
+  t: (key: string) => string;
+  user: any; // Replace with proper User type
+  width: number;
+  styles: ReturnType<typeof profileStyles>;
+};
+
+const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
+  t,
+  user,
+  width,
+  styles,
+}) => {
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   
   // Handle success message when returning from update
@@ -93,20 +115,20 @@ const ProfileScreen: React.FC = () => {
 
         <ButtonContainer>
           <Button
-            title="Edit Profile"
+            title={t('profile.editProfile')}
             onPress={handleEditProfile}
-            style={{ marginBottom: 16 }}
             variant="primary"
             testID="edit-profile-button"
             accessibilityLabel={t('profile.editProfile')}
+            style={styles.button}
           />
           <Button
             title={t('profile.logout')}
             onPress={handleLogout}
             variant="danger"
-            style={{ marginTop: 16 }}
             testID="logout-button"
-            accessibilityLabel="Logout"
+            accessibilityLabel={t('profile.logout')}
+            style={styles.button}
           />
         </ButtonContainer>
       </ProfileContainer>
@@ -114,4 +136,4 @@ const ProfileScreen: React.FC = () => {
   );
 };
 
-export default ProfileScreen;
+export default ThemedProfileScreen;
