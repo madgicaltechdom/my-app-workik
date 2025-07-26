@@ -1,6 +1,7 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "jsx": "react-native",
     "strict": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
@@ -12,26 +13,24 @@
     "noImplicitOverride": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@screens/*": ["./src/screens/*"],
+      "@theme/*": ["./src/theme/*"],
+      "@services/*": ["./src/services/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@types/*": ["./src/types/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@navigation/*": ["./src/navigation/*"],
+      "@features/*": ["./src/features/*"]
+    },
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@/components/*": ["src/components/*"],
-      "@/features/*": ["src/features/*"],
-      "@/hooks/*": ["src/hooks/*"],
-      "@/services/*": ["src/services/*"],
-      "@/utils/*": ["src/utils/*"],
-      "@/contexts/*": ["src/contexts/*"],
-      "@/navigation/*": ["src/navigation/*"],
-      "@/theme/*": ["src/theme/*"],
-      "@/localization/*": ["src/localization/*"]
-    }
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react-native",
+    "moduleResolution": "node"
   },
   "include": [
     "src/**/*",

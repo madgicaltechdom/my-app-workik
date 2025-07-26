@@ -4,3 +4,11 @@
 android/
 ios/
 
+# Jest testing
+.coverage/
+.nyc_output/
+.jest/
+jest-cache/
+test-results/
+reports/
+*.lcov
