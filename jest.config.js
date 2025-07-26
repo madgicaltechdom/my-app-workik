@@ -5,7 +5,7 @@ module.exports = {
     '<rootDir>/src/__tests__/setup.js',
   ],
   transformIgnorePatterns: [
-    'node_modules/(?!(jest-)?react-native|@react-native|@react-navigation|@react-native-community|styled-components|react-native-safe-area-context|@react-native-async-storage/async-storage|expo-localization|i18next|react-i18next|@react-native/js-polyfills)',
+    'node_modules/(?!(jest-)?react-native|@react-native|@react-navigation|@react-native-community|styled-components|react-native-safe-area-context|@react-native-async-storage/async-storage|expo-localization|i18next|react-i18next|@react-native/js-polyfills|@expo/vector-icons)',
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
@@ -18,6 +18,7 @@ module.exports = {
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@navigation/(.*)$': '<rootDir>/src/navigation/$1',
     '^@features/(.*)$': '<rootDir>/src/features/$1',
+    '^@expo/vector-icons$': '<rootDir>/src/__tests__/__mocks__/@expo/vector-icons.js',
   },
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',

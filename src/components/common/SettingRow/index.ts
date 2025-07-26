@@ -1,2 +1,2 @@
 export * from './SettingRow';
-export { default } from './SettingRow';
+export { SettingRow as default } from './SettingRow';

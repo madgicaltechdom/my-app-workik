@@ -2,11 +2,15 @@
 jest.mock('react-native', () => ({
   Platform: {
     OS: 'ios',
-    select: jest.fn((obj: { ios: any; default: any }) => obj.ios || obj.default),
+    select: jest.fn((obj) => obj.ios || obj.default),
   },
   useColorScheme: jest.fn(() => 'light'),
+  useWindowDimensions: jest.fn(() => ({ width: 375, height: 812 })),
   ActivityIndicator: 'ActivityIndicator',
+  KeyboardAvoidingView: 'KeyboardAvoidingView',
   Pressable: 'Pressable',
+  TouchableOpacity: 'TouchableOpacity',
+  Switch: 'Switch',
   Text: 'Text',
   View: 'View',
   StyleSheet: {
@@ -17,11 +21,117 @@ jest.mock('react-native', () => ({
 
 // Mock styled-components
 jest.mock('styled-components/native', () => {
-  return {
+  const React = require('react');
+  
+  // Simple mock component that renders the base component
+  const MockStyledComponent = React.forwardRef((props, ref) => {
+    // Filter out styled-component specific props (starting with $)
+    const filteredProps = {};
+    Object.keys(props).forEach(key => {
+      if (!key.startsWith('$')) {
+        filteredProps[key] = props[key];
+      }
+    });
+    
+    // Handle disabled state for TouchableOpacity and similar components
+    const { onPress, disabled, children, __componentType, ...otherProps } = filteredProps;
+    
+    // Return the base component type (like 'Pressable', 'Text', etc.)
+    const ComponentType = __componentType || 'View';
+    
+    // For TouchableOpacity, we need to properly handle disabled state
+    if (ComponentType === 'TouchableOpacity' && disabled) {
+      // When disabled, don't pass onPress and add a custom handler that prevents events
+      return React.createElement(
+        ComponentType,
+        {
+          ...otherProps,
+          disabled: true,
+          onPress: undefined, // Explicitly remove onPress when disabled
+          ref,
+          // Add a data attribute to help with testing
+          'data-disabled': 'true'
+        },
+        children
+      );
+    }
+    
+    return React.createElement(
+      ComponentType,
+      {
+        ...otherProps,
+        onPress,
+        disabled,
+        ref
+      },
+      children
+    );
+  });
+
+  // Create a styled function that works with both styled.Component and styled(Component)
+  const createStyled = (componentType) => {
+    const styledFunction = (strings, ...interpolations) => {
+      const StyledComp = React.forwardRef((props, ref) => {
+        return React.createElement(MockStyledComponent, {
+          ...props,
+          __componentType: componentType,
+          ref
+        });
+      });
+      StyledComp.displayName = `Styled(${componentType})`;
+      return StyledComp;
+    };
+    
+    // Add attrs method to the styled function itself
+    styledFunction.attrs = (attrsFunction) => {
+      // Return a function that can be called with template literals
+      const attrsStyledFunction = (strings, ...interpolations) => {
+        const StyledComp = React.forwardRef((props, ref) => {
+          const attrsProps = typeof attrsFunction === 'function' ? attrsFunction(props) : attrsFunction || {};
+          const mergedProps = { ...attrsProps, ...props };
+          
+          return React.createElement(MockStyledComponent, {
+            ...mergedProps,
+            __componentType: componentType,
+            ref
+          });
+        });
+        StyledComp.displayName = `Styled(${componentType}).attrs`;
+        return StyledComp;
+      };
+      
+      // Also add attrs method to the returned function for chaining
+      attrsStyledFunction.attrs = (nextAttrsFunction) => {
+        return styledFunction.attrs((props) => {
+          const firstAttrs = typeof attrsFunction === 'function' ? attrsFunction(props) : attrsFunction || {};
+          const secondAttrs = typeof nextAttrsFunction === 'function' ? nextAttrsFunction(props) : nextAttrsFunction || {};
+          return { ...firstAttrs, ...secondAttrs };
+        });
+      };
+      
+      return attrsStyledFunction;
+    };
+    
+    return styledFunction;
+  };
+
+  // Main styled function
+  const styled = (Component) => createStyled(Component);
+
+  // Add common React Native components as properties
+  styled.View = createStyled('View');
+  styled.Text = createStyled('Text');
+  styled.KeyboardAvoidingView = createStyled('KeyboardAvoidingView');
+  styled.Pressable = createStyled('Pressable');
+  styled.TouchableOpacity = createStyled('TouchableOpacity');
+  styled.Switch = createStyled('Switch');
+  styled.ScrollView = createStyled('ScrollView');
+
+  const mockModule = {
+    __esModule: true,
+    default: styled,
+    styled: styled,
     ThemeProvider: ({ children }) => children,
-    styled: (component) => {
-      return () => component;
-    },
     useTheme: jest.fn(() => ({
       colors: {
         primary: '#007AFF',
@@ -29,6 +139,12 @@ jest.mock('styled-components/native', () => {
         danger: '#FF3B30',
         textLight: '#FFFFFF',
         textMuted: '#8E8E93',
+        backgroundSecondary: '#F2F2F7',
+        textSecondary: '#8E8E93',
+        overlayLight: 'rgba(0,0,0,0.1)',
+        surface: '#FFFFFF',
+        subText: '#8E8E93',
+        border: '#E5E5EA',
       },
       spacing: {
         xs: 4,
@@ -36,9 +152,16 @@ jest.mock('styled-components/native', () => {
         md: 16,
         lg: 24,
       },
+      fontSizes: {
+        sm: 14,
+        md: 16,
+        lg: 18,
+      },
     })),
     css: jest.fn(),
   };
+
+  return mockModule;
 });
 
 // Mock React Navigation
@@ -140,6 +263,31 @@ jest.mock('firebase/firestore', () => ({
   where: jest.fn(),
   getDocs: jest.fn(),
   onSnapshot: jest.fn(),
+}));
+
+// Mock authService
+jest.mock('@/services/authService', () => ({
+  authService: {
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: jest.fn(),
+    resetPassword: jest.fn(),
+    getCurrentUser: jest.fn(),
+    updateProfile: jest.fn(),
+  },
+}));
+
+// Mock validation utilities
+jest.mock('@/utils/validation', () => ({
+  validateEmail: jest.fn((email) => ({
+    isValid: email && email.includes('@'),
+    errorMessage: email && email.includes('@') ? null : 'Please enter a valid email address',
+  })),
+  validateRequired: jest.fn((value, fieldName) => ({
+    isValid: Boolean(value && value.trim()),
+    errorMessage: Boolean(value && value.trim()) ? null : `${fieldName} is required`,
+  })),
+  sanitizeInput: jest.fn((input) => input ? input.trim() : ''),
 }));
 
 // Mock console methods globally

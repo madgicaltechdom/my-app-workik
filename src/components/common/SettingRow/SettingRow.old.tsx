@@ -28,8 +28,6 @@ export const SettingRow: React.FC<SettingRowProps> = ({
   testID,
 }) => {
   const handlePress = () => {
-    if (disabled) return; // Don't execute callbacks when disabled
-    
     if (type === 'toggle' && onValueChange) {
       onValueChange(!value);
     } else if (onPress) {
@@ -47,9 +45,6 @@ export const SettingRow: React.FC<SettingRowProps> = ({
       disabled={disabled || (type === 'button' && !onPress)}
       activeOpacity={0.7}
       testID={testID}
-      accessibilityRole={type === 'toggle' ? 'switch' : 'button'}
-      accessibilityLabel={title}
-      accessibilityState={{ disabled }}
     >
       <View style={styles.content}>
         {icon && <View style={styles.iconContainer}>{icon}</View>}
@@ -94,21 +89,22 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: 'transparent',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   iconContainer: {
     marginRight: 12,
     width: 24,
-    height: 24,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   textContainer: {
     flex: 1,
+    marginRight: 12,
   },
   title: {
     fontSize: 16,
@@ -117,12 +113,10 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    opacity: 0.7,
+    opacity: 0.8,
   },
   rightComponent: {
-    marginLeft: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginLeft: 8,
   },
   chevron: {
     fontSize: 24,
@@ -130,4 +124,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SettingRow;
+

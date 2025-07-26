@@ -147,6 +147,9 @@ function LoginScreen({ navigation }: LoginScreenProps) {
 }, [state.email, state.password]);
 
 const handleLogin = useCallback(async () => {
+  // Always set attempted submit to show validation errors
+  dispatch({ type: 'SET_ATTEMPTED_SUBMIT', payload: true });
+  
   if (!validateForm()) return;
 
   // Trim email and password to remove any accidental whitespace
@@ -155,7 +158,6 @@ const handleLogin = useCallback(async () => {
 
   dispatch({ type: 'SET_LOADING', payload: true });
   dispatch({ type: 'CLEAR_ERROR' });
-  dispatch({ type: 'SET_ATTEMPTED_SUBMIT', payload: true });
 
   const loadingTimeout = setTimeout(() => {
     if (state.isLoading) {
