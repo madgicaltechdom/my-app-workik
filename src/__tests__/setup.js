@@ -1,3 +1,28 @@
+// Mock Firebase
+jest.mock('firebase/app', () => ({
+  initializeApp: jest.fn(),
+  getApps: jest.fn(() => []),
+  getApp: jest.fn(() => ({ name: '[DEFAULT]' })),
+  apps: [],
+}));
+
+jest.mock('firebase/firestore', () => ({
+  getFirestore: jest.fn(),
+  doc: jest.fn(),
+  getDoc: jest.fn(),
+  setDoc: jest.fn(),
+  updateDoc: jest.fn(),
+  collection: jest.fn(),
+  query: jest.fn(),
+  where: jest.fn(),
+  orderBy: jest.fn(),
+  limit: jest.fn(),
+  getDocs: jest.fn(),
+  addDoc: jest.fn(),
+  deleteDoc: jest.fn(),
+  serverTimestamp: jest.fn(() => 'MOCK_TIMESTAMP'),
+}));
+
 // Mock React Native modules
 jest.mock('react-native', () => ({
   Platform: {
@@ -17,6 +42,9 @@ jest.mock('react-native', () => ({
   StyleSheet: {
     create: jest.fn((styles) => styles),
     flatten: jest.fn((style) => style || {}),
+  },
+  Alert: {
+    alert: jest.fn(),
   },
 }));
 
@@ -308,7 +336,7 @@ jest.mock('@/services/authService', () => ({
     register: jest.fn(),
     resetPassword: jest.fn(),
     getCurrentUser: jest.fn(),
-    updateProfile: jest.fn(),
+    updateUserProfile: jest.fn(),
   },
 }));
 

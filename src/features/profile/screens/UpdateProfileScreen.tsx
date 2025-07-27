@@ -253,7 +253,7 @@ const UpdateProfileScreenContent: React.FC<UpdateProfileScreenProps> = ({
       </FormContainer>
 
       {isLoading && (
-        <LoadingOverlay>
+        <LoadingOverlay testID="loading-overlay">
           <LoadingIndicator />
         </LoadingOverlay>
       )}
