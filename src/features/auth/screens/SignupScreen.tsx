@@ -17,7 +17,7 @@ type SignupScreenProps = {
   navigation: StackNavigationProp<any>;
 };
 
-export const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
+const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const { loading: authLoading } = useFirebaseAuth();
   

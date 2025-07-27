@@ -13,6 +13,7 @@ jest.mock('react-native', () => ({
   Switch: 'Switch',
   Text: 'Text',
   View: 'View',
+  Image: 'Image',
   StyleSheet: {
     create: jest.fn((styles) => styles),
     flatten: jest.fn((style) => style || {}),
@@ -122,6 +123,7 @@ jest.mock('styled-components/native', () => {
   styled.View = createStyled('View');
   styled.Text = createStyled('Text');
   styled.KeyboardAvoidingView = createStyled('KeyboardAvoidingView');
+  styled.Image = createStyled('Image');
   styled.Pressable = createStyled('Pressable');
   styled.TouchableOpacity = createStyled('TouchableOpacity');
   styled.Switch = createStyled('Switch');
@@ -202,6 +204,39 @@ jest.mock('react-native-gesture-handler', () => {
     State: {},
     Directions: {},
     gestureHandlerRootHOC: (component) => component,
+  };
+});
+
+// Mock react-native-svg
+jest.mock('react-native-svg', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  
+  // Mock Svg component
+  const Svg = ({ children, ...props }) => {
+    return React.createElement('Svg', props, children);
+  };
+  
+  // Mock Path component
+  const Path = (props) => React.createElement('Path', props);
+  
+  // Mock Circle component
+  const Circle = (props) => React.createElement('Circle', props);
+  
+  // Mock Rect component
+  const Rect = (props) => React.createElement('Rect', props);
+  
+  // Mock G component
+  const G = (props) => React.createElement('G', props);
+  
+  // Return all mocks
+  return {
+    Svg,
+    Path,
+    Circle,
+    Rect,
+    G,
+    // Add other SVG components as needed
   };
 });
 

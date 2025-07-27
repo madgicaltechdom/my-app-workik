@@ -1,293 +1,293 @@
-import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import React, { ReactNode } from 'react';
+import { render, fireEvent, act } from '@testing-library/react-native';
+import { ThemeProvider } from 'styled-components/native';
+import { theme as appTheme } from '../../../../theme';
+import ProfileScreen from '../ProfileScreen';
+import { NavigationContainer } from '@react-navigation/native';
 
-// Create a comprehensive Profile screen for testing
-const TestProfileScreen = () => {
-  return React.createElement('ScrollView', { testID: 'profile-screen' }, [
-    React.createElement('View', { key: 'header', testID: 'profile-header' }, 
-      React.createElement('Text', { testID: 'profile-title' }, 'Profile')
-    ),
-    React.createElement('View', { key: 'avatar-section', testID: 'avatar-section' }, [
-      React.createElement('Image', { 
-        key: 'avatar-image',
-        testID: 'avatar-image',
-        source: { uri: 'https://example.com/avatar.jpg' }
-      }),
-      React.createElement('Text', { key: 'name-text', testID: 'name-text' }, 'John Doe'),
-      React.createElement('Text', { key: 'email-text', testID: 'email-text' }, 'john.doe@example.com')
-    ]),
-    React.createElement('View', { key: 'info-section', testID: 'info-section' }, [
-      React.createElement('View', { key: 'info-box', testID: 'info-box' }, [
-        React.createElement('Text', { key: 'info-title', testID: 'info-title' }, 'Phone'),
-        React.createElement('Text', { key: 'info-value', testID: 'info-value' }, '+1 234 567 8900')
-      ]),
-      React.createElement('View', { key: 'info-box-2', testID: 'info-box-2' }, [
-        React.createElement('Text', { key: 'info-title-2', testID: 'info-title-2' }, 'Location'),
-        React.createElement('Text', { key: 'info-value-2', testID: 'info-value-2' }, 'New York, USA')
-      ])
-    ]),
-    React.createElement('TouchableOpacity', { 
-      key: 'edit-profile-button',
-      testID: 'edit-profile-button'
-    }, React.createElement('Text', {}, 'Edit Profile')),
-    React.createElement('TouchableOpacity', { 
-      key: 'change-password-button',
-      testID: 'change-password-button'
-    }, React.createElement('Text', {}, 'Change Password')),
-    React.createElement('TouchableOpacity', { 
-      key: 'privacy-button',
-      testID: 'privacy-button'
-    }, React.createElement('Text', {}, 'Privacy Settings'))
-  ]);
+// Mock navigation
+const mockNavigation = {
+  navigate: jest.fn(),
+  goBack: jest.fn(),
+  addListener: jest.fn((event, callback) => {
+    if (event === 'focus') callback();
+    return jest.fn();
+  }),
+};
+
+// Mock the navigation module
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  
+  // Create a mock NavigationContainer with required methods
+  const MockNavigationContainer = ({ children }: { children: ReactNode }) => {
+    return <>{children}</>;
+  };
+  
+  // Add required static properties
+  MockNavigationContainer.router = {
+    getStateForAction: jest.fn(),
+    getActionForPathAndParams: jest.fn(),
+    getPathAndParamsForState: jest.fn(),
+    getActionCreators: jest.fn(() => ({})),
+  };
+  
+  // Add getConstants method
+  MockNavigationContainer.getConstants = () => ({
+    // Add any required constants here
+    linking: {},
+    theme: {},
+  });
+  
+  return {
+    ...actualNav,
+    useNavigation: () => mockNavigation,
+    NavigationContainer: MockNavigationContainer,
+  };
+});
+
+// Mock window dimensions
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
+  useWindowDimensions: () => ({
+    width: 375,
+    height: 667,
+    scale: 2,
+    fontScale: 1,
+  }),
+}));
+
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => ({
+  ...jest.requireActual('react-native-safe-area-context'),
+  useSafeAreaInsets: () => ({
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  }),
+}));
+
+// Mock the UserContext
+jest.mock('../../../../contexts/UserContext', () => ({
+  useUser: jest.fn(() => ({
+    user: {
+      uid: '123',
+      email: 'test@example.com',
+      displayName: 'Test User',
+      photoURL: 'https://example.com/photo.jpg',
+      phoneNumber: '+1234567890',
+      emailVerified: true,
+      metadata: { creationTime: '2023-01-01' },
+    },
+    updateUser: jest.fn(),
+  })),
+}));
+
+// Mock the auth service
+jest.mock('../../../../services/authService', () => ({
+  authService: {
+    logout: jest.fn().mockResolvedValue({}),
+  },
+}));
+
+// Mock i18n
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key, // Return the key as the translation
+  }),
+}));
+
+// Mock the theme
+jest.mock('react-native/Libraries/Utilities/useColorScheme', () => ({
+  default: () => 'light',
+}));
+
+// Mock the window dimensions
+jest.mock('react-native/Libraries/Utilities/Dimensions', () => ({
+  get: () => ({ width: 375, height: 667, scale: 2, fontScale: 1 }),
+}));
+
+// Create a test wrapper component
+// Wrapper component to provide theme and navigation context
+const TestWrapper = ({ children }: { children: ReactNode }) => (
+  <ThemeProvider theme={appTheme}>
+    <NavigationContainer>
+      {children}
+    </NavigationContainer>
+  </ThemeProvider>
+);
+
+// Helper to wait for async operations
+const waitForAsync = async () => {
+  await act(async () => {
+    await Promise.resolve();
+  });
 };
 
 describe('ProfileScreen', () => {
-  it('renders correctly', () => {
-    const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
-    );
-    expect(getByTestId('profile-screen')).toBeTruthy();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('displays profile title', () => {
-    const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
+  it('renders the profile screen', async () => {
+    const { getByText } = render(
+      <TestWrapper>
+        <ProfileScreen />
+      </TestWrapper>
     );
-    expect(getByTestId('profile-title')).toBeTruthy();
+
+    await waitForAsync();
+    
+    // Verify the screen renders by checking for the title
+    expect(getByText('profile.title')).toBeTruthy();
   });
 
-  it('renders avatar section', () => {
-    const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
+  it('displays user information when available', async () => {
+    const { getAllByText } = render(
+      <TestWrapper>
+        <ProfileScreen />
+      </TestWrapper>
     );
-    expect(getByTestId('avatar-section')).toBeTruthy();
+
+    await waitForAsync();
+    
+    // Check that user information is displayed (using getAllByText for multiple matches)
+    const testUsers = getAllByText('Test User');
+    const emails = getAllByText('test@example.com');
+    const phones = getAllByText('+1234567890');
+    
+    expect(testUsers.length).toBeGreaterThan(0);
+    expect(emails.length).toBeGreaterThan(0);
+    expect(phones.length).toBeGreaterThan(0);
   });
 
-  it('renders avatar image', () => {
-    const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
+  it('displays user information correctly', async () => {
+    const { getAllByText } = render(
+      <TestWrapper>
+        <ProfileScreen />
+      </TestWrapper>
     );
-    expect(getByTestId('avatar-image')).toBeTruthy();
+
+    await waitForAsync();
+    
+    // Check user information is displayed (using getAllByText for multiple matches)
+    const testUsers = getAllByText('Test User');
+    const emails = getAllByText('test@example.com');
+    const phones = getAllByText('+1234567890');
+    
+    expect(testUsers.length).toBeGreaterThan(0);
+    expect(emails.length).toBeGreaterThan(0);
+    expect(phones.length).toBeGreaterThan(0);
   });
 
-  it('renders name text', () => {
+  it('navigates to edit profile screen when edit button is pressed', async () => {
+    // Clear previous mock calls
+    mockNavigation.navigate.mockClear();
+    
     const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
+      <TestWrapper>
+        <ProfileScreen />
+      </TestWrapper>
     );
-    expect(getByTestId('name-text')).toBeTruthy();
-  });
 
-  it('renders email text', () => {
-    const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
-    );
-    expect(getByTestId('email-text')).toBeTruthy();
-  });
-
-  it('renders info section', () => {
-    const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
-    );
-    expect(getByTestId('info-section')).toBeTruthy();
-  });
-
-  it('renders info boxes', () => {
-    const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
-    );
-    expect(getByTestId('info-box')).toBeTruthy();
-    expect(getByTestId('info-box-2')).toBeTruthy();
-  });
-
-  it('renders info titles', () => {
-    const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
-    );
-    expect(getByTestId('info-title')).toBeTruthy();
-    expect(getByTestId('info-title-2')).toBeTruthy();
-  });
-
-  it('renders info values', () => {
-    const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
-    );
-    expect(getByTestId('info-value')).toBeTruthy();
-    expect(getByTestId('info-value-2')).toBeTruthy();
-  });
-
-  it('renders edit profile button', () => {
-    const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
-    );
-    expect(getByTestId('edit-profile-button')).toBeTruthy();
-  });
-
-  it('renders change password button', () => {
-    const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
-    );
-    expect(getByTestId('change-password-button')).toBeTruthy();
-  });
-
-  it('renders privacy button', () => {
-    const { getByTestId } = render(
-      React.createElement(TestProfileScreen)
-    );
-    expect(getByTestId('privacy-button')).toBeTruthy();
-  });
-
-  it('handles edit profile button press', () => {
-    const mockOnPress = jest.fn();
-    const { getByTestId } = render(
-      React.createElement('TouchableOpacity', { 
-        testID: 'edit-profile-button',
-        onPress: mockOnPress
-      })
-    );
+    await waitForAsync();
     
     fireEvent.press(getByTestId('edit-profile-button'));
-    expect(mockOnPress).toHaveBeenCalled();
+    
+    // Check if navigation was called with the correct arguments
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('UpdateProfile', {
+      userId: '123',
+    });
   });
 
-  it('handles change password button press', () => {
-    const mockOnPress = jest.fn();
+  it('calls logout when logout button is pressed', async () => {
+    const { authService } = require('../../../../services/authService');
+    
     const { getByTestId } = render(
-      React.createElement('TouchableOpacity', { 
-        testID: 'change-password-button',
-        onPress: mockOnPress
-      })
+      <TestWrapper>
+        <ProfileScreen />
+      </TestWrapper>
     );
     
-    fireEvent.press(getByTestId('change-password-button'));
-    expect(mockOnPress).toHaveBeenCalled();
+    await waitForAsync();
+    const logoutButton = getByTestId('logout-button');
+    fireEvent.press(logoutButton);
+    
+    expect(authService.logout).toHaveBeenCalled();
   });
 
-  it('handles privacy button press', () => {
-    const mockOnPress = jest.fn();
-    const { getByTestId } = render(
-      React.createElement('TouchableOpacity', { 
-        testID: 'privacy-button',
-        onPress: mockOnPress
-      })
+  it('displays loading state when user data is not available', async () => {
+    // Mock the UserContext to return null user
+    const { useUser } = require('../../../../contexts/UserContext');
+    (useUser as jest.Mock).mockImplementationOnce(() => ({
+      user: null,
+      updateUser: jest.fn(),
+    }));
+    
+    const { getByText } = render(
+      <TestWrapper>
+        <ProfileScreen />
+      </TestWrapper>
     );
     
-    fireEvent.press(getByTestId('privacy-button'));
-    expect(mockOnPress).toHaveBeenCalled();
+    await waitForAsync();
+    
+    // Check for loading text instead of a loading indicator
+    expect(getByText('profile.loading')).toBeTruthy();
   });
 
-  it('handles avatar image loading', () => {
-    const { getByTestId } = render(
-      React.createElement('Image', { 
-        testID: 'avatar-image',
-        source: { uri: 'https://example.com/avatar.jpg' },
-        style: { width: 100, height: 100, borderRadius: 50 }
-      })
+  it('handles missing user data gracefully', async () => {
+    // Mock the UserContext to return user with missing fields
+    const { useUser } = require('../../../../contexts/UserContext');
+    (useUser as jest.Mock).mockImplementationOnce(() => ({
+      user: {
+        uid: '123',
+        // No other fields
+      },
+      updateUser: jest.fn(),
+    }));
+    
+    const { getByText } = render(
+      <TestWrapper>
+        <ProfileScreen />
+      </TestWrapper>
     );
-    const avatar = getByTestId('avatar-image');
-    expect(avatar.props.source.uri).toBe('https://example.com/avatar.jpg');
-    expect(avatar.props.style.width).toBe(100);
-    expect(avatar.props.style.height).toBe(100);
-    expect(avatar.props.style.borderRadius).toBe(50);
+    
+    await waitForAsync();
+    
+    // Should show guest text when user data is missing
+    expect(getByText('profile.guest')).toBeTruthy();
   });
 
-  it('handles name text styling', () => {
-    const { getByTestId } = render(
-      React.createElement('Text', { 
-        testID: 'name-text',
-        style: { fontSize: 24, fontWeight: 'bold', color: '#333333' }
-      })
+  it('applies proper accessibility attributes', () => {
+    const { getByTestId, getByLabelText } = render(
+      <TestWrapper>
+        <ProfileScreen />
+      </TestWrapper>
     );
-    const name = getByTestId('name-text');
-    expect(name.props.style.fontSize).toBe(24);
-    expect(name.props.style.fontWeight).toBe('bold');
-    expect(name.props.style.color).toBe('#333333');
+    
+    // Check for buttons by their testIDs
+    const editButton = getByTestId('edit-profile-button');
+    const logoutButton = getByTestId('logout-button');
+    
+    // Check accessibility labels
+    expect(editButton.props.accessibilityLabel).toBe('profile.editProfile');
+    expect(logoutButton.props.accessibilityLabel).toBe('profile.logout');
+    
+    // Check avatar accessibility
+    expect(getByLabelText('profile.avatar')).toBeTruthy();
   });
 
-  it('handles email text styling', () => {
-    const { getByTestId } = render(
-      React.createElement('Text', { 
-        testID: 'email-text',
-        style: { fontSize: 16, color: '#666666' }
-      })
+  it('applies theme styles correctly', () => {
+    const { getByText } = render(
+      <TestWrapper>
+        <ProfileScreen />
+      </TestWrapper>
     );
-    const email = getByTestId('email-text');
-    expect(email.props.style.fontSize).toBe(16);
-    expect(email.props.style.color).toBe('#666666');
-  });
-
-  it('handles info box styling', () => {
-    const { getByTestId } = render(
-      React.createElement('View', { 
-        testID: 'info-box',
-        style: { padding: 12, backgroundColor: '#F5F5F5', borderRadius: 8 }
-      })
-    );
-    const box = getByTestId('info-box');
-    expect(box.props.style.padding).toBe(12);
-    expect(box.props.style.backgroundColor).toBe('#F5F5F5');
-    expect(box.props.style.borderRadius).toBe(8);
-  });
-
-  it('handles info title styling', () => {
-    const { getByTestId } = render(
-      React.createElement('Text', { 
-        testID: 'info-title',
-        style: { fontSize: 14, fontWeight: '600', color: '#333333' }
-      })
-    );
-    const title = getByTestId('info-title');
-    expect(title.props.style.fontSize).toBe(14);
-    expect(title.props.style.fontWeight).toBe('600');
-    expect(title.props.style.color).toBe('#333333');
-  });
-
-  it('handles info value styling', () => {
-    const { getByTestId } = render(
-      React.createElement('Text', { 
-        testID: 'info-value',
-        style: { fontSize: 16, color: '#666666' }
-      })
-    );
-    const value = getByTestId('info-value');
-    expect(value.props.style.fontSize).toBe(16);
-    expect(value.props.style.color).toBe('#666666');
-  });
-
-  it('handles button styling', () => {
-    const { getByTestId } = render(
-      React.createElement('TouchableOpacity', { 
-        testID: 'edit-profile-button',
-        style: { backgroundColor: '#007AFF', padding: 16, borderRadius: 8 }
-      })
-    );
-    const button = getByTestId('edit-profile-button');
-    expect(button.props.style.backgroundColor).toBe('#007AFF');
-    expect(button.props.style.padding).toBe(16);
-    expect(button.props.style.borderRadius).toBe(8);
-  });
-
-  it('handles button text styling', () => {
-    const { getByTestId } = render(
-      React.createElement('Text', { 
-        testID: 'button-text',
-        style: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' }
-      })
-    );
-    const text = getByTestId('button-text');
-    expect(text.props.style.fontSize).toBe(16);
-    expect(text.props.style.fontWeight).toBe('600');
-    expect(text.props.style.color).toBe('#FFFFFF');
-  });
-
-  it('handles scroll view styling', () => {
-    const { getByTestId } = render(
-      React.createElement('ScrollView', { 
-        testID: 'profile-scroll',
-        contentContainerStyle: { padding: 20 }
-      })
-    );
-    const scroll = getByTestId('profile-scroll');
-    expect(scroll.props.contentContainerStyle.padding).toBe(20);
+    
+    // Check if the title is rendered with theme styles
+    const title = getByText('profile.title');
+    expect(title).toBeTruthy();
   });
 
   it('handles container styling', () => {

@@ -87,6 +87,106 @@ npm test -- --watch
 npm test -- --coverage
 ```
 
+### Testing Best Practices
+
+#### 1. Test Structure
+
+```typescript
+describe('[ComponentName]', () => {
+  // Setup mocks and test data
+  const mockNavigation = {
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    addListener: jest.fn((event, callback) => {
+      if (event === 'focus') callback();
+      return jest.fn();
+    }),
+  };
+
+  beforeEach(() => {
+    // Reset mocks before each test
+    jest.clearAllMocks();
+  });
+
+  describe('Rendering', () => {
+    it('renders correctly', () => {
+      // Test rendering
+    });
+  });
+});
+```
+
+#### 2. Navigation Testing
+
+For components using React Navigation, use this mock pattern:
+
+```typescript
+// Mock the navigation module
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  
+  // Create a mock NavigationContainer with required methods
+  const MockNavigationContainer = ({ children }: { children: ReactNode }) => {
+    return <>{children}</>;
+  };
+  
+  // Add required static properties
+  MockNavigationContainer.router = {
+    getStateForAction: jest.fn(),
+    getActionForPathAndParams: jest.fn(),
+    getPathAndParamsForState: jest.fn(),
+    getActionCreators: jest.fn(() => ({})),
+  };
+  
+  // Add getConstants method
+  MockNavigationContainer.getConstants = () => ({
+    linking: {},
+    theme: {},
+  });
+  
+  return {
+    ...actualNav,
+    useNavigation: () => mockNavigation,
+    NavigationContainer: MockNavigationContainer,
+  };
+});
+```
+
+#### 3. Test Coverage Areas
+
+For each screen, ensure you test:
+
+1. **Basic Rendering**
+   - Component renders without crashing
+   - All essential UI elements are present
+   - Proper display of static text and labels
+
+2. **Navigation**
+   - All navigation actions (buttons, links, etc.)
+   - Correct navigation parameters
+   - Back button behavior
+
+3. **User Interactions**
+   - All interactive elements (buttons, inputs, toggles)
+   - State updates after interactions
+   - Form validation
+   - Loading and disabled states
+
+4. **Data Display**
+   - Dynamic data rendering
+   - Edge cases (empty states, loading states, error states)
+   - Data formatting (dates, numbers, etc.)
+
+5. **Accessibility**
+   - Proper accessibility labels and hints
+   - Focus management
+   - Screen reader compatibility
+
+6. **Theming and Styling**
+   - Theme colors and styles
+   - Responsive behavior
+   - Dark/light mode support
+
 ### E2E Tests with Maestro
 
 ```bash
@@ -106,6 +206,33 @@ We maintain a minimum of 80% test coverage. To check current coverage:
 ```bash
 npm test -- --coverage
 ```
+
+### Test Generation Prompt
+
+For generating new test files, use the following prompt template:
+
+```markdown
+# React Native Screen Test Case Generation
+
+## Component Information
+- **Component Name**: [ComponentName]
+- **File Path**: [path/to/ComponentName.tsx]
+- **Description**: [Brief description of what the component does]
+
+## Testing Requirements
+1. Test Setup with proper mocks for navigation, context, and services
+2. Test cases for rendering, navigation, user interactions, data display, accessibility, and theming
+3. Proper TypeScript types for all test variables and functions
+4. Comprehensive test coverage for both happy paths and error cases
+5. Follow the project's existing testing patterns and conventions
+```
+
+### Example Test File
+
+See these reference implementations for examples:
+- `src/features/auth/screens/__tests__/LoginScreen.test.tsx`
+- `src/features/auth/screens/__tests__/SignupScreen.test.tsx`
+- `src/features/profile/screens/__tests__/ProfileScreen.test.tsx`
 
 ## 🛠 Feature Development Guide
 
