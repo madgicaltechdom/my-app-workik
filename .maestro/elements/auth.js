@@ -4,7 +4,7 @@ output.login = {
   title: 'login-title',
   emailInput: 'login-email-input',
   passwordInput: 'login-password-input',
-  submitButton: 'login-button',
+  submitButton: 'login-submit-button',
   errorMessage: 'login-error-message',
   signupLink: 'signup-link',
   forgotPasswordLink: 'forgot-password-link',
