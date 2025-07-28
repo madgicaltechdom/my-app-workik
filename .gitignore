@@ -12,3 +12,4 @@ jest-cache/
 test-results/
 reports/
 *.lcov
+coverage/

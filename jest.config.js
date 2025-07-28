@@ -18,7 +18,7 @@ module.exports = {
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@navigation/(.*)$': '<rootDir>/src/navigation/$1',
     '^@features/(.*)$': '<rootDir>/src/features/$1',
-    '^@expo/vector-icons$': '<rootDir>/src/__tests__/__mocks__/@expo/vector-icons.js',
+    '^@expo/vector-icons$': '<rootDir>/__mocks__/@expo/vector-icons.js',
   },
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
