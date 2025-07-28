@@ -11,6 +11,7 @@ A modern React Native application for user authentication, profile management, a
 ## 📑 Table of Contents
 
 - [🚀 Quick Start](#-quick-start)
+  - [Expo Development Environment](#expo-development-environment)
   - [Prerequisites](#prerequisites)
   - [Firebase Setup](#firebase-setup)
   - [Setting Up Android Emulator](#setting-up-android-emulator)
@@ -54,6 +55,37 @@ A modern React Native application for user authentication, profile management, a
 - [📞 Support](#-support)
 
 ## 🚀 Quick Start
+
+### Expo Development Environment
+
+This project is built with Expo, which provides a set of tools and services for React Native development. Before you begin:
+
+1. **Install Expo CLI** (if not already installed):
+   ```bash
+   npm install -g expo-cli
+   ```
+
+2. **Expo Go App** (for development):
+   - Install Expo Go on your physical device from the [App Store](https://apps.apple.com/app/expo-go/id982107779) or [Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent)
+   - For the best development experience, we recommend using the Expo Go app on a physical device
+
+3. **Development Builds (Optional but Recommended)**
+   For features that require native modules not available in Expo Go, create a development build:
+   ```bash
+   # Install EAS CLI
+   npm install -g eas-cli
+   
+   # Log in to your Expo account
+   eas login
+   
+   # Configure the project
+   eas build:configure
+   
+   # Build for development
+   eas build --profile development --platform android
+   # or for iOS
+   eas build --profile development --platform ios
+   ```
 
 ### Prerequisites
 
@@ -821,17 +853,25 @@ For reference, see these features:
    - Test edge cases
    - Test error states
 ```
+## 📚 Development & Testing Guidelines
+
+For comprehensive development and testing guidelines, please refer to our [Development and Testing Guidelines](./DEVELOPMENT_GUIDELINES.md) document. This document covers:
+
+- Project architecture and folder structure
+- React Native styling best practices
+- Firebase integration guidelines
+- TypeScript migration strategy
+- Testing and quality assurance
+- Internationalization (i18n)
+- Error handling and debugging
+- Performance optimization
+- Code organization and maintenance
+- Team workflow and standards
+
 ## 🤝 Contributing
 
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
 ### Code Style
+
 - Follow TypeScript best practices
 - Use meaningful variable names
 - Add comments for complex logic
