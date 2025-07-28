@@ -39,17 +39,55 @@ A modern React Native application for user authentication, profile management, a
 
 ## 🚀 Quick Start
 
+### Prerequisites
+
+- Node.js (v16 or later)
+- npm or yarn
+- Android Studio (for Android development)
+- Android SDK and an emulator (for Android testing)
+- Xcode (for iOS development, macOS only)
+
+### Setting Up Android Emulator
+
+1. **Install Android Studio**
+   - Download and install [Android Studio](https://developer.android.com/studio)
+   - During installation, make sure to install:
+     - Android SDK
+     - Android SDK Platform
+     - Android Virtual Device
+
+2. **Create an Android Virtual Device (AVD)**
+   - Open Android Studio
+   - Go to Tools > AVD Manager
+   - Click "Create Virtual Device"
+   - Select a device definition (e.g., Pixel 6)
+   - Download and select a system image (preferably a recent API level)
+   - Complete the AVD setup
+
+3. **Start the Emulator**
+   - From AVD Manager, click the green play button next to your device
+   - Alternatively, run: `emulator -avd <your_avd_name>`
+
+### Running the App
+
 ```bash
 # Clone the repository
 git clone <repo-url>
 cd my-app
 
-# Install dependencies
-npm install
+# Install dependencies with legacy peer deps to handle version conflicts
+npm install --legacy-peer-deps
 
 # Start the development server
 npm start
+
+# In a new terminal, run on Android emulator
+npm run android
+
+# Or scan the QR code with Expo Go app on your physical device
 ```
+
+> **Note:** Make sure your Android emulator is running before executing `npm run android`
 
 ## 🏗 Project Structure
 
@@ -76,6 +114,10 @@ my-app/
 
 ### Unit & Integration Tests
 
+We use Jest and React Testing Library for unit and integration testing. Follow these guidelines:
+
+#### Running Tests
+
 ```bash
 # Run all tests
 npm test
@@ -85,7 +127,50 @@ npm test -- --watch
 
 # Run tests with coverage
 npm test -- --coverage
+
+# Run a specific test file
+npm test -- src/features/auth/screens/__tests__/LoginScreen.test.tsx
+
+# Run tests matching a pattern
+npm test -- -t "login form"
 ```
+
+#### Testing Guidelines
+
+1. **Test Structure**
+   - Place test files in `__tests__` directories next to the code they're testing
+   - Use `.test.tsx` extension for test files
+   - Follow the naming convention: `ComponentName.test.tsx`
+
+2. **Test Coverage**
+   - Aim for at least 80% test coverage
+   - Focus on testing behavior, not implementation
+   - Test edge cases and error states
+
+3. **Best Practices**
+   - Use `@testing-library/react-native` for rendering components
+   - Mock external dependencies
+   - Test user interactions with `fireEvent`
+   - Use `waitFor` for async operations
+   - Keep tests isolated and independent
+
+4. **Example Test**
+   ```typescript
+   import { render, fireEvent } from '@testing-library/react-native';
+   import Button from '../Button';
+
+   describe('Button', () => {
+     it('calls onPress when pressed', () => {
+       const onPress = jest.fn();
+       const { getByText } = render(
+         <Button onPress={onPress} title="Press me" />
+       );
+       
+       fireEvent.press(getByText('Press me'));
+       expect(onPress).toHaveBeenCalled();
+     });
+   });
+   ```
 
 ### Testing Best Practices
 
@@ -235,6 +320,67 @@ See these reference implementations for examples:
 - `src/features/profile/screens/__tests__/ProfileScreen.test.tsx`
 
 ## 🛠 Feature Development Guide
+
+### Creating a New Feature
+
+When adding a new feature, follow this template to ensure consistency and maintainability:
+
+#### Feature Request Template
+
+```markdown
+## Feature: [Feature Name]
+
+### Description
+[Brief description of the feature]
+
+### User Stories
+- As a [user role], I want to [action] so that [benefit]
+
+### Technical Requirements
+- [ ] API endpoints needed
+- [ ] New components required
+- [ ] State management updates
+- [ ] Testing requirements
+- [ ] Documentation updates
+
+### Acceptance Criteria
+- [ ] Criteria 1
+- [ ] Criteria 2
+- [ ] Criteria 3
+
+### Technical Notes
+- Any specific technical considerations
+- Dependencies
+- Potential risks or challenges
+```
+
+### Development Workflow
+
+1. **Create a feature branch**
+   ```bash
+   git checkout -b feature/feature-name
+   ```
+
+2. **Implement the feature**
+   - Follow the project's code style
+   - Write tests for new functionality
+   - Update documentation as needed
+
+3. **Run tests**
+   ```bash
+   npm test
+   ```
+
+4. **Commit your changes**
+   ```bash
+   git add .
+   git commit -m "feat: add feature name"
+   ```
+
+5. **Push and create a pull request**
+   - Push your branch: `git push origin feature/feature-name`
+   - Create a pull request with a clear description of changes
+   - Request code review from team members
 
 ### 🎯 Feature Implementation Template
 
