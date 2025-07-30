@@ -53,6 +53,7 @@ const ActivityItem: React.FC<Props> = ({ activity, isCommentsExpanded, onToggleC
       }}
       accessible
       accessibilityLabel={`${activity.userProfile.name} activity`}
+      testID="activity-item"
     >
       {/* User Info */}
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
@@ -83,7 +84,7 @@ const ActivityItem: React.FC<Props> = ({ activity, isCommentsExpanded, onToggleC
           accessibilityRole="button"
           accessibilityLabel={`Like button, ${activity.likes.length} likes`}
           style={{ flexDirection: "row", alignItems: "center", marginRight: 24 }}
-          testID="like-activity-button"
+          testID="activity-like-button"
         >
           <Text style={{ fontSize: 18, color: "#666", marginRight: 6 }}>♡</Text>
           <Text>{activity.likes.length}</Text>
@@ -94,7 +95,7 @@ const ActivityItem: React.FC<Props> = ({ activity, isCommentsExpanded, onToggleC
           accessibilityRole="button"
           accessibilityLabel={`Comments button, ${activity.comments.length} comments`}
           style={{ flexDirection: "row", alignItems: "center", marginRight: isOwner ? 24 : 0 }}
-          testID="comments-activity-button"
+          testID="activity-comments-button"
         >
           <Text style={{ fontSize: 18, color: "#666", marginRight: 6 }}>💬</Text>
           <Text>{activity.comments.length}</Text>
@@ -120,7 +121,7 @@ const ActivityItem: React.FC<Props> = ({ activity, isCommentsExpanded, onToggleC
               elevation: 2,
             }}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            testID="delete-comment-activity-button"
+            testID="activity-delete-comment-button"
           >
             <Text style={{ fontSize: 22, color: "#d00" }}>🗑️</Text>
           </TouchableOpacity>
@@ -132,7 +133,7 @@ const ActivityItem: React.FC<Props> = ({ activity, isCommentsExpanded, onToggleC
         <View style={{ marginTop: 12 }} testID="comments-section">
           {activity.comments.length === 0 && <Text style={{ fontSize: 13, color: "#888" }}>No comments yet</Text>}
           {activity.comments.map((comment) => (
-            <View key={comment.id} style={{ flexDirection: "row", marginBottom: 8 }}>
+            <View key={comment.id} style={{ flexDirection: "row", marginBottom: 8 }} testID="activity-comment-item">
               <Image
                 source={{ uri: comment.userProfile.avatarUrl }}
                 style={{ width: 30, height: 30, borderRadius: 15, marginRight: 8 }}
@@ -168,7 +169,7 @@ const ActivityItem: React.FC<Props> = ({ activity, isCommentsExpanded, onToggleC
                     setCommentInput("");
                   }
                 }}
-                testID="add-comment-activtiy-input"
+                testID="activity-add-comment-input"
               />
               <TouchableOpacity
                 onPress={() => {

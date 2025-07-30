@@ -114,4 +114,11 @@ output.activity = {
   addPostButton: 'add-activity-fab',
   postTextInput: 'activity-post-text-input',
   postButton: 'activity-post-button',
+  activityItem: 'activity-item',
+  likeButton: 'activity-like-button',
+  commentButton: 'activity-comments-button',
+  commentInputField: 'activity-add-comment-input',
+  commentItem: 'activity-comment-item',
+  commentsSection: 'comments-section',
+  deleteCommentButton: 'activity-delete-comment-button',
 }

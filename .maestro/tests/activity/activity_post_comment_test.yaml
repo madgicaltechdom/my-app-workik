@@ -1,0 +1,47 @@
+# Maestro test: Post a comment on an activity
+appId: com.madgicaltechdom.storageapp
+env:
+  VALID_EMAIL: 'kapil.jain@madgicaltechdom.com'
+  VALID_PASSWORD: 'M1dgicaltechdome'
+  SAMPLE_ACTIVITY: 'Test Activity'
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- assertVisible:
+    id: '${output.login.emailInput}'
+- assertVisible:
+    id: '${output.login.passwordInput}'
+- assertVisible:
+    id: '${output.login.submitButton}'
+- tapOn:
+    id: '${output.login.emailInput}'
+- inputText: '${VALID_EMAIL}'
+- tapOn:
+    id: '${output.login.passwordInput}'
+- inputText: '${VALID_PASSWORD}'
+- tapOn:
+    id: '${output.login.submitButton}'
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: '${output.login.errorMessage}'
+- assertVisible:
+    id: '${output.home.screen}'
+- assertVisible:
+    id: '${output.home.welcomeMessage}'
+- assertVisible: 
+- assertVisible: Activities
+- tapOn: 'Activities'
+- tapOn:
+    id: '${output.activity.commentButton}'
+- assertVisible: 
+    id: '${output.activity.commentInputField}'
+- assertVisible: 'Post'
+- tapOn:
+    id: '${output.activity.commentInputField}'
+- inputText: '${SAMPLE_ACTIVITY}'
+- tapOn: 'Post'
+- assertVisible:
+    id: ${output.activity.commentItem}
+- assertVisible:
+    id: ${output.activity.commentSection}
