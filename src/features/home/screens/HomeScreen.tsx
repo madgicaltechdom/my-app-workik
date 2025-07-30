@@ -92,7 +92,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             </Text>
             <Text 
               style={styles.seeAll}
-              onPress={() => navigation.navigate('Activity')}
+              onPress={() => navigation.navigate('Activities', { screen: 'ActivitiesMain' })}
               accessibilityRole="button"
               accessibilityLabel={t('common.seeAll')}
             >

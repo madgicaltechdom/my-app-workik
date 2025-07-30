@@ -21,6 +21,7 @@ export type AuthStackParamList = {
 
 export type MainStackParamList = {
   Home: undefined;
+  Activities: undefined;
   ProfileTab: {
     user?: UserProfile | null;
     profileUpdated?: boolean;

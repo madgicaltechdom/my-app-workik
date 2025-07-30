@@ -15,11 +15,49 @@ import HomeScreen from '../features/home/screens/HomeScreen';
 import SettingsScreen from '../features/settings/screens/SettingsScreen';
 import ProfileScreen from '../features/profile/screens/ProfileScreen';
 import UpdateProfileScreen from '../features/profile/screens/UpdateProfileScreen';
+import ActivityScreen from '../features/activity/screens/ActivityScreen';
+import ActivityPostScreen from '../features/activity/screens/ActivityPostScreen';
+import { createNativeStackNavigator as createActivityStackNavigator } from '@react-navigation/native-stack';
 
 console.log('[TabNavigator] Initializing navigation...');
 
 const Tab = createBottomTabNavigator<MainStackParamList>();
 const ProfileStack = createNativeStackNavigator<MainStackParamList>();
+const ActivityStack = createActivityStackNavigator();
+// Activities stack with ActivityScreen and ActivityPostScreen
+const ActivitiesStackScreen = () => {
+  const colorScheme = useColorScheme() || 'light';
+  const currentTheme = colorScheme === 'dark' ? darkTheme : lightTheme;
+  return (
+    <ActivityStack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: currentTheme.colors.background,
+        },
+        headerTintColor: currentTheme.colors.text,
+        headerTitleStyle: {
+          fontWeight: '600',
+        },
+      }}
+    >
+      <ActivityStack.Screen
+        name="ActivitiesMain"
+        component={ActivityScreen}
+        options={{
+          title: 'Activities',
+          headerShown: false,
+        }}
+      />
+      <ActivityStack.Screen
+        name="ActivityPostScreen"
+        component={ActivityPostScreen}
+        options={{
+          title: 'Post Activity',
+        }}
+      />
+    </ActivityStack.Navigator>
+  );
+};
 
 // Error boundary component
 const ErrorFallback = ({ error }: { error: Error }) => (
@@ -101,7 +139,9 @@ export const TabNavigator: React.FC = () => {
             iconName = focused ? 'person' : 'person-outline';
           } else if (route.name === 'Settings') {
             iconName = focused ? 'settings' : 'settings-outline';
-          }
+          } else if (route.name === 'Activities') {
+            iconName = focused ? 'notifications' : 'notifications-outline';
+      }
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -145,6 +185,14 @@ export const TabNavigator: React.FC = () => {
           options={{
             title: 'Home',
             tabBarTestID: 'home-tab',
+          }}
+        />
+        <Tab.Screen 
+          name="Activities" 
+          component={ActivitiesStackScreen} 
+          options={{
+            title: 'Activities',
+            tabBarTestID: 'activities-tab',
           }}
         />
         <Tab.Screen 
