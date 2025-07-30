@@ -77,6 +77,7 @@ const ActivityPostScreen: React.FC = () => {
           marginBottom: 10,
         }}
         accessibilityLabel="Activity text input"
+        testID="activity-post-text-input"
       />
 
       <TouchableOpacity
@@ -90,6 +91,7 @@ const ActivityPostScreen: React.FC = () => {
           borderRadius: 8,
           alignItems: "center",
         }}
+        testID="activity-post-button"
       >
         <Text style={{ color: "#fff", fontSize: 16 }}>{loading ? "Posting..." : "Post"}</Text>
       </TouchableOpacity>

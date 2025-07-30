@@ -1,0 +1,54 @@
+# Maestro test: Post a comment on an activity
+appId: com.madgicaltechdom.storageapp
+env:
+  VALID_EMAIL: 'kapil.jain@madgicaltechdom.com'
+  VALID_PASSWORD: 'M1dgicaltechdome'
+  SAMPLE_ACTIVITY: 'Test Activity'
+---
+- runScript: '../../elements/auth.js'
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- assertVisible:
+    id: '${output.login.emailInput}'
+- assertVisible:
+    id: '${output.login.passwordInput}'
+- assertVisible:
+    id: '${output.login.submitButton}'
+- tapOn:
+    id: '${output.login.emailInput}'
+- inputText: '${VALID_EMAIL}'
+- tapOn:
+    id: '${output.login.passwordInput}'
+- inputText: '${VALID_PASSWORD}'
+- tapOn:
+    id: '${output.login.submitButton}'
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: '${output.login.errorMessage}'
+- assertVisible:
+    id: '${output.home.screen}'
+- assertVisible:
+    id: '${output.home.welcomeMessage}'
+- assertVisible: 
+- assertVisible: Activities
+- tapOn: 'Activities'
+- tapOn:
+    id: add-activity-fab
+- assertVisible: Post Activity
+- assertVisible: Post an Activity
+- assertVisible:
+    id: activity-post-text-input
+- assertVisible:
+    id: activity-post-button
+- tapOn:
+    id: activity-post-text-input
+- inputText: '${SAMPLE_ACTIVITY}'
+- tapOn:
+    id: activity-post-button
+- assertVisible:
+    id: alert_title
+- assertVisible: Activity posted.
+- tapOn:
+    id: button1
+- assertVisible: '${SAMPLE_ACTIVITY}'

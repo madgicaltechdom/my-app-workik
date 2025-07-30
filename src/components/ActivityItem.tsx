@@ -83,6 +83,7 @@ const ActivityItem: React.FC<Props> = ({ activity, isCommentsExpanded, onToggleC
           accessibilityRole="button"
           accessibilityLabel={`Like button, ${activity.likes.length} likes`}
           style={{ flexDirection: "row", alignItems: "center", marginRight: 24 }}
+          testID="like-activity-button"
         >
           <Text style={{ fontSize: 18, color: "#666", marginRight: 6 }}>♡</Text>
           <Text>{activity.likes.length}</Text>
@@ -93,6 +94,7 @@ const ActivityItem: React.FC<Props> = ({ activity, isCommentsExpanded, onToggleC
           accessibilityRole="button"
           accessibilityLabel={`Comments button, ${activity.comments.length} comments`}
           style={{ flexDirection: "row", alignItems: "center", marginRight: isOwner ? 24 : 0 }}
+          testID="comments-activity-button"
         >
           <Text style={{ fontSize: 18, color: "#666", marginRight: 6 }}>💬</Text>
           <Text>{activity.comments.length}</Text>
@@ -118,6 +120,7 @@ const ActivityItem: React.FC<Props> = ({ activity, isCommentsExpanded, onToggleC
               elevation: 2,
             }}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            testID="delete-comment-activity-button"
           >
             <Text style={{ fontSize: 22, color: "#d00" }}>🗑️</Text>
           </TouchableOpacity>
@@ -126,7 +129,7 @@ const ActivityItem: React.FC<Props> = ({ activity, isCommentsExpanded, onToggleC
 
       {/* Collapsible Comment Section */}
       {isCommentsExpanded && (
-        <View style={{ marginTop: 12 }}>
+        <View style={{ marginTop: 12 }} testID="comments-section">
           {activity.comments.length === 0 && <Text style={{ fontSize: 13, color: "#888" }}>No comments yet</Text>}
           {activity.comments.map((comment) => (
             <View key={comment.id} style={{ flexDirection: "row", marginBottom: 8 }}>
@@ -165,6 +168,7 @@ const ActivityItem: React.FC<Props> = ({ activity, isCommentsExpanded, onToggleC
                     setCommentInput("");
                   }
                 }}
+                testID="add-comment-activtiy-input"
               />
               <TouchableOpacity
                 onPress={() => {
@@ -175,6 +179,7 @@ const ActivityItem: React.FC<Props> = ({ activity, isCommentsExpanded, onToggleC
                 }}
                 style={{ marginLeft: 8, padding: 6, backgroundColor: '#007AFF', borderRadius: 16 }}
                 accessibilityLabel="Post comment"
+                testID="post-comment-activtiy-input"
               >
                 <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>Post</Text>
               </TouchableOpacity>

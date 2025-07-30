@@ -66,6 +66,7 @@ output.profile = {
 // Navigation Elements
 output.navigation = {
   homeTab: 'Home',
+  activityTab: 'Activities',
   profileTab: 'Profile',
   settingsTab: 'Settings'
 }
@@ -106,4 +107,11 @@ output.accessibility = {
 output.darkMode = {
   toggleButton: 'dark-mode-toggle',
   indicator: 'dark-mode-indicator'
+}
+
+output.activity = {
+  screen: 'activity-screen',
+  addPostButton: 'add-activity-fab',
+  postTextInput: 'activity-post-text-input',
+  postButton: 'activity-post-button',
 }
